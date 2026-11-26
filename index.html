@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
@@ -418,6 +419,9 @@
             <button type="button" id="admin-tab-clients" onclick="definirOngletAdmin('clients')" class="admin-tab-btn px-3.5 py-2 rounded-xl text-xs font-extrabold bg-slate-100 text-slate-700 hover:bg-slate-200">
               <i class="fa-solid fa-users mr-1.5"></i>Clients, Demandes &amp; Config
             </button>
+            <button type="button" id="admin-tab-securite" onclick="definirOngletAdmin('securite')" class="admin-tab-btn px-3.5 py-2 rounded-xl text-xs font-extrabold bg-slate-100 text-slate-700 hover:bg-slate-200">
+              <i class="fa-solid fa-key mr-1.5"></i>Mots de passe
+            </button>
             <button type="button" onclick="deconnecterAdmin()" class="px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold">
               <i class="fa-solid fa-lock mr-1"></i>Verrouiller
             </button>
@@ -538,7 +542,7 @@
   <script>
     const CLE_STOCKAGE = 'neo_pressing_kani_etat_v1';
     const CANAL_SYNCHRO = 'neo_pressing_kani_sync_channel';
-    const CODE_ACCES_ADMIN = 'AngeMam2026@1';
+    const CODE_ACCES_ADMIN_DEFAUT = 'AngeMam2026@1';
 
     const CONFIG_MARQUE_DEFAUT = {
       nomMarque: 'NEO PRESSING',
@@ -547,7 +551,8 @@
       whatsapp: '2250502724550',
       nomDomaine: 'https://neopressing-kani.ci',
       urlLogo: 'image_d742bf.jpg',
-      endpointCloud: ''
+      endpointCloud: '',
+      codeAccesAdmin: CODE_ACCES_ADMIN_DEFAUT
     };
 
     const STATUTS_COMMANDE = [
@@ -707,7 +712,8 @@
           reponseAdmin: 'Merci pour votre suggestion ! Des housses de protection sont désormais disponibles en boutique.',
           dateReponseAdmin: '2026-11-22 14:00'
         }
-      ]
+      ],
+      demandesReinitialisationMdp: []
     };
 
     function chargerEtat() {
@@ -723,7 +729,8 @@
           clients: Array.isArray(analyse.clients) ? analyse.clients : JSON.parse(JSON.stringify(ETAT_INITIAL.clients)),
           commandes: Array.isArray(analyse.commandes) ? analyse.commandes : JSON.parse(JSON.stringify(ETAT_INITIAL.commandes)),
           demandesPrestation: Array.isArray(analyse.demandesPrestation) ? analyse.demandesPrestation : JSON.parse(JSON.stringify(ETAT_INITIAL.demandesPrestation)),
-          reclamations: Array.isArray(analyse.reclamations) ? analyse.reclamations : JSON.parse(JSON.stringify(ETAT_INITIAL.reclamations))
+          reclamations: Array.isArray(analyse.reclamations) ? analyse.reclamations : JSON.parse(JSON.stringify(ETAT_INITIAL.reclamations)),
+          demandesReinitialisationMdp: Array.isArray(analyse.demandesReinitialisationMdp) ? analyse.demandesReinitialisationMdp : []
         };
       } catch (err) {
         return JSON.parse(JSON.stringify(ETAT_INITIAL));
@@ -731,7 +738,8 @@
     }
 
     let etatApp = chargerEtat();
-    let clientConnecteId = 'CLI-001';
+    let clientConnecteId = null;
+    let afficherFormulaireResetClient = false;
     let ongletClientActif = 'commandes';
     let adminAuthentifie = false;
     let ongletAdminActif = 'finance';
@@ -1337,16 +1345,41 @@
                   <input id="login-client-identifiant" type="text" required placeholder="Ex : 07 08 45 12 30 ou awa.kone@exemple.ci" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-semibold" />
                 </div>
                 <div>
-                  <label class="block font-bold text-slate-700 mb-1">Mot de passe</label>
+                  <div class="flex items-center justify-between mb-1">
+                    <label class="block font-bold text-slate-700">Mot de passe</label>
+                    <button type="button" onclick="afficherFormulaireResetClient = !afficherFormulaireResetClient; afficherEspaceClient();" class="text-[11px] font-bold text-indigo-600 hover:underline">
+                      Mot de passe oublié ?
+                    </button>
+                  </div>
                   <input id="login-client-mdp" type="password" required placeholder="••••••••" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
                 </div>
                 <div class="flex flex-wrap gap-2 pt-1">
                   <button type="submit" class="px-5 py-2.5 rounded-xl neo-gradient text-white font-extrabold shadow">Se connecter</button>
-                  <button type="button" onclick="clientConnecteId='CLI-001'; afficherEspaceClient();" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold">
-                    Connexion Démo (Awa Koné)
-                  </button>
                 </div>
               </form>
+
+              ${afficherFormulaireResetClient ? `
+                <div class="pt-4 border-t border-slate-200 space-y-3">
+                  <div class="flex items-center justify-between">
+                    <h3 class="text-sm font-black text-slate-900"><i class="fa-solid fa-key text-indigo-600 mr-1.5"></i>Demande de réinitialisation de mot de passe</h3>
+                    <button type="button" onclick="afficherFormulaireResetClient = false; afficherEspaceClient();" class="text-xs text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+                  </div>
+                  <p class="text-[11px] text-slate-500">Renseignez votre téléphone ou e-mail enregistré : l'administration NEO PRESSING réinitialisera votre accès et vous communiquera votre nouveau mot de passe.</p>
+                  <form onsubmit="soumettreDemandeResetMdpClient(event)" class="space-y-2.5 text-xs">
+                    <div>
+                      <label class="block font-bold text-slate-700 mb-1">Téléphone ou E-mail du compte</label>
+                      <input id="reset-client-identifiant" type="text" required placeholder="Ex : 07 08 45 12 30" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-semibold" />
+                    </div>
+                    <div>
+                      <label class="block font-bold text-slate-700 mb-1">Nouveau mot de passe souhaité (optionnel)</label>
+                      <input id="reset-client-nouveau-mdp" type="text" placeholder="Laissez vide pour génération par l'admin" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+                    </div>
+                    <button type="submit" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold">
+                      Envoyer la demande de réinitialisation
+                    </button>
+                  </form>
+                </div>
+              ` : ''}
             </div>
 
             <div class="neo-card p-6 sm:p-8 space-y-4">
@@ -1631,13 +1664,51 @@
       afficherToast('Votre message a bien été transmis.', 'success');
     }
 
+    function soumettreDemandeResetMdpClient(e) {
+      e.preventDefault();
+      const identifiant = (document.getElementById('reset-client-identifiant')?.value || '').trim();
+      const nouveauMdpSouhaite = (document.getElementById('reset-client-nouveau-mdp')?.value || '').trim();
+      if (!identifiant) return;
+
+      const norm = identifiant.toLowerCase().replace(/\s+/g, '');
+      const clientTrouve = etatApp.clients.find(
+        (c) => c.email.toLowerCase() === identifiant.toLowerCase() || c.telephone.replace(/\s+/g, '') === norm
+      );
+
+      if (!clientTrouve) {
+        afficherToast('Aucun compte client trouvé avec ce téléphone ou e-mail.', 'error');
+        return;
+      }
+
+      etatApp.demandesReinitialisationMdp.unshift({
+        id: 'RST-' + Date.now(),
+        clientId: clientTrouve.id,
+        nomClient: clientTrouve.nomComplet,
+        telephone: clientTrouve.telephone,
+        email: clientTrouve.email,
+        nouveauMdpSouhaite,
+        statut: 'En attente',
+        creeLe: new Date().toISOString().slice(0, 16).replace('T', ' '),
+        traiteLe: ''
+      });
+
+      sauvegarderEtat();
+      afficherFormulaireResetClient = false;
+      afficherEspaceClient();
+      afficherToast('Demande de réinitialisation transmise à l’administration NEO PRESSING.', 'success');
+    }
+
     // -----------------------------------------------------------------------
     // ESPACE ADMINISTRATEUR (AUTHENTIFICATION, FINANCES, COMMANDES, CONFIG)
     // -----------------------------------------------------------------------
+    function obtenirCodeAccesAdminActuel() {
+      return (etatApp.configMarque?.codeAccesAdmin || '').trim() || CODE_ACCES_ADMIN_DEFAUT;
+    }
+
     function authentifierAdmin(e) {
       e.preventDefault();
       const code = (document.getElementById('input-code-admin')?.value || '').trim();
-      if (code === CODE_ACCES_ADMIN) {
+      if (code === obtenirCodeAccesAdminActuel()) {
         adminAuthentifie = true;
         document.getElementById('input-code-admin').value = '';
         document.getElementById('portail-connexion-admin').classList.add('hidden');
@@ -1646,6 +1717,43 @@
         afficherToast('Accès administrateur déverrouillé.', 'success');
       } else {
         afficherToast('Code d’accès administrateur invalide.', 'error');
+      }
+    }
+
+    function deconnecterAdmin() {
+      adminAuthentifie = false;
+      document.getElementById('tableau-bord-admin').classList.add('hidden');
+      document.getElementById('portail-connexion-admin').classList.remove('hidden');
+      afficherToast('Espace administrateur verrouillé.', 'info');
+    }
+
+    function definirOngletAdmin(onglet) {
+      ongletAdminActif = onglet;
+      ['finance', 'commandes', 'clients', 'securite'].forEach((t) => {
+        const btn = document.getElementById(`admin-tab-${t}`);
+        if (!btn) return;
+        if (t === onglet) {
+          btn.className = 'admin-tab-btn px-3.5 py-2 rounded-xl text-xs font-extrabold neo-gradient text-white shadow-sm';
+        } else {
+          btn.className = 'admin-tab-btn px-3.5 py-2 rounded-xl text-xs font-extrabold bg-slate-100 text-slate-700 hover:bg-slate-200';
+        }
+      });
+      afficherContenuOngletAdmin();
+    }
+
+    function afficherContenuOngletAdmin() {
+      if (!adminAuthentifie) return;
+      const conteneur = document.getElementById('contenu-onglet-admin');
+      if (!conteneur) return;
+
+      if (ongletAdminActif === 'finance') {
+        afficherFinanceAdmin(conteneur);
+      } else if (ongletAdminActif === 'commandes') {
+        afficherCommandesAdmin(conteneur);
+      } else if (ongletAdminActif === 'clients') {
+        afficherClientsAdmin(conteneur);
+      } else if (ongletAdminActif === 'securite') {
+        afficherSecuriteMotsDePasseAdmin(conteneur);
       }
     }
 
@@ -2228,7 +2336,8 @@
             clients: Array.isArray(parsed.clients) ? parsed.clients : etatApp.clients,
             commandes: parsed.commandes,
             demandesPrestation: Array.isArray(parsed.demandesPrestation) ? parsed.demandesPrestation : [],
-            reclamations: Array.isArray(parsed.reclamations) ? parsed.reclamations : []
+            reclamations: Array.isArray(parsed.reclamations) ? parsed.reclamations : [],
+            demandesReinitialisationMdp: Array.isArray(parsed.demandesReinitialisationMdp) ? parsed.demandesReinitialisationMdp : []
           };
           sauvegarderEtat();
           afficherContenuOngletAdmin();
@@ -2244,6 +2353,7 @@
     function enregistrerConfigMarqueAdmin(e) {
       e.preventDefault();
       etatApp.configMarque = {
+        ...etatApp.configMarque,
         nomMarque: (document.getElementById('cfg-nom-marque')?.value || 'NEO PRESSING').trim(),
         ville: (document.getElementById('cfg-ville')?.value || 'KANI').trim(),
         telephone: (document.getElementById('cfg-telephone')?.value || '05 02 72 45 50').trim(),
@@ -2259,158 +2369,145 @@
       }
     }
 
-    function repondreDemandeAdmin(e, demandeId) {
+    function reinitialiserCodeAdmin(e) {
       e.preventDefault();
-      const dem = etatApp.demandesPrestation.find((d) => d.id === demandeId);
-      if (!dem) return;
-      const input = document.getElementById(`rep-demande-${demandeId}`);
-      const texte = (input?.value || '').trim();
-      if (!texte) return;
-      dem.reponseAdmin = texte;
-      dem.dateReponseAdmin = new Date().toISOString().slice(0, 16).replace('T', ' ');
-      dem.statut = 'Confirmée';
+      const actuel = (document.getElementById('sec-admin-ancien')?.value || '').trim();
+      const nouveau = (document.getElementById('sec-admin-nouveau')?.value || '').trim();
+      const confirmation = (document.getElementById('sec-admin-confirmer')?.value || '').trim();
+
+      if (actuel !== obtenirCodeAccesAdminActuel()) {
+        afficherToast('L’ancien code d’accès administrateur est incorrect.', 'error');
+        return;
+      }
+      if (nouveau.length < 6) {
+        afficherToast('Le nouveau code doit contenir au moins 6 caractères.', 'error');
+        return;
+      }
+      if (nouveau !== confirmation) {
+        afficherToast('La confirmation ne correspond pas au nouveau code.', 'error');
+        return;
+      }
+
+      etatApp.configMarque.codeAccesAdmin = nouveau;
       sauvegarderEtat();
       afficherContenuOngletAdmin();
-      afficherToast('Réponse envoyée au client !', 'success');
+      afficherToast('Code d’accès administrateur mis à jour avec succès !', 'success');
     }
 
-    function repondreReclamationAdmin(e, recId) {
+    function reinitialiserMotDePasseClientAdmin(e, clientId, demandeId = '') {
       e.preventDefault();
-      const rec = etatApp.reclamations.find((r) => r.id === recId);
-      if (!rec) return;
-      const input = document.getElementById(`rep-rec-${recId}`);
-      const texte = (input?.value || '').trim();
-      if (!texte) return;
-      rec.reponseAdmin = texte;
-      rec.dateReponseAdmin = new Date().toISOString().slice(0, 16).replace('T', ' ');
-      rec.statut = 'Traitée';
+      const client = etatApp.clients.find((c) => c.id === clientId);
+      if (!client) return;
+      const inputId = demandeId ? `sec-reset-dem-${demandeId}` : `sec-reset-cli-${clientId}`;
+      const nouveauMdp = (document.getElementById(inputId)?.value || '').trim();
+      if (nouveauMdp.length < 4) {
+        afficherToast('Veuillez saisir un mot de passe d’au moins 4 caractères.', 'error');
+        return;
+      }
+
+      client.motDePasse = nouveauMdp;
+      if (demandeId) {
+        const dem = etatApp.demandesReinitialisationMdp.find((d) => d.id === demandeId);
+        if (dem) {
+          dem.statut = 'Réinitialisé';
+          dem.traiteLe = new Date().toISOString().slice(0, 16).replace('T', ' ');
+        }
+      }
       sauvegarderEtat();
       afficherContenuOngletAdmin();
-      afficherToast('Réponse envoyée au client !', 'success');
+      afficherToast(`Mot de passe de ${client.nomComplet} réinitialisé (${nouveauMdp}).`, 'success');
     }
 
-    function afficherClientsAdmin(conteneur) {
+    function afficherSecuriteMotsDePasseAdmin(conteneur) {
       if (!adminAuthentifie) return;
-      const cfg = { ...CONFIG_MARQUE_DEFAUT, ...(etatApp.configMarque || {}) };
+      const demandes = etatApp.demandesReinitialisationMdp || [];
 
       conteneur.innerHTML = `
         <div class="space-y-6">
-          <!-- Configuration Boutique, Domaine, Logo, WhatsApp & Base Partagée -->
+          <!-- Réinitialisation du code d'accès Administrateur -->
           <div class="neo-card p-6 space-y-4">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <div>
-                <h3 class="font-extrabold text-slate-900 text-base sm:text-lg">Personnalisation Boutique, Domaine, Logo, WhatsApp &amp; Sauvegarde</h3>
-                <p class="text-xs text-slate-500">Synchronisation instantanée entre postes ouverts + export/import JSON ou API partagée à KANI.</p>
-              </div>
-              <div class="flex flex-wrap gap-2">
-                <button type="button" onclick="exporterSauvegardeJSON()" class="px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs">
-                  <i class="fa-solid fa-download mr-1"></i> Exporter JSON
-                </button>
-                <label class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs cursor-pointer">
-                  <i class="fa-solid fa-upload mr-1"></i> Importer JSON
-                  <input type="file" accept="application/json" onchange="importerSauvegardeJSON(this)" class="hidden" />
-                </label>
-                <button type="button" onclick="chargerDepuisCloudPartage()" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs">
-                  <i class="fa-solid fa-cloud-arrow-down mr-1"></i> Synchroniser
-                </button>
-              </div>
+            <div>
+              <h3 class="font-black text-slate-900 text-base sm:text-lg"><i class="fa-solid fa-shield-halved text-indigo-600 mr-2"></i>Réinitialiser le Code d'Accès Administrateur</h3>
+              <p class="text-xs text-slate-500">Modifiez le code secret permettant de déverrouiller le tableau de bord NEO PRESSING.</p>
             </div>
-
-            <form onsubmit="enregistrerConfigMarqueAdmin(event)" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
+            <form onsubmit="reinitialiserCodeAdmin(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
               <div>
-                <label class="block font-bold text-slate-700 mb-1">Nom de l'enseigne</label>
-                <input id="cfg-nom-marque" type="text" required value="${cfg.nomMarque}" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-semibold" />
-              </div>
-              <div>
-                <label class="block font-bold text-slate-700 mb-1">Ville / Agence</label>
-                <input id="cfg-ville" type="text" required value="${cfg.ville}" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-semibold" />
+                <label class="block font-bold text-slate-700 mb-1">Code administrateur actuel</label>
+                <input id="sec-admin-ancien" type="password" required placeholder="Code actuel" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-semibold" />
               </div>
               <div>
-                <label class="block font-bold text-slate-700 mb-1">Nom de domaine / URL site</label>
-                <input id="cfg-domaine" type="text" required value="${cfg.nomDomaine}" placeholder="https://neopressing-kani.ci" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-semibold" />
+                <label class="block font-bold text-slate-700 mb-1">Nouveau code administrateur</label>
+                <input id="sec-admin-nouveau" type="password" required placeholder="Min. 6 caractères" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-semibold" />
               </div>
               <div>
-                <label class="block font-bold text-slate-700 mb-1">Téléphone affiché</label>
-                <input id="cfg-telephone" type="text" required value="${cfg.telephone}" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-semibold" />
+                <label class="block font-bold text-slate-700 mb-1">Confirmer le nouveau code</label>
+                <input id="sec-admin-confirmer" type="password" required placeholder="Répétez le code" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-semibold" />
               </div>
-              <div>
-                <label class="block font-bold text-slate-700 mb-1">Numéro WhatsApp (indicatif pays)</label>
-                <input id="cfg-whatsapp" type="text" required value="${cfg.whatsapp}" placeholder="2250502724550" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-semibold" />
-              </div>
-              <div>
-                <label class="block font-bold text-slate-700 mb-1">URL du Logo (image PNG/JPG)</label>
-                <input id="cfg-logo" type="text" value="${cfg.urlLogo}" placeholder="https://.../logo.png (vide = icône)" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
-              </div>
-              <div class="sm:col-span-2 lg:col-span-3">
-                <label class="block font-bold text-slate-700 mb-1">URL Base partagée / API REST (optionnel pour synchronisation multi-appareils)</label>
-                <input id="cfg-endpoint-cloud" type="text" value="${cfg.endpointCloud}" placeholder="https://votre-api.exemple/kani" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
-              </div>
-              <div class="sm:col-span-2 lg:col-span-3 flex justify-end pt-1">
-                <button type="submit" class="px-5 py-2.5 rounded-xl neo-gradient text-white font-extrabold text-xs sm:text-sm shadow">
-                  <i class="fa-solid fa-floppy-disk mr-1.5"></i> Enregistrer &amp; Synchroniser
+              <div class="sm:col-span-3 flex justify-end pt-1">
+                <button type="submit" class="px-5 py-2.5 rounded-xl neo-gradient text-white font-extrabold text-xs shadow">
+                  <i class="fa-solid fa-key mr-1.5"></i>Mettre à jour le code Admin
                 </button>
               </div>
             </form>
           </div>
 
-          <!-- Demandes de prestations & Réponses directes -->
+          <!-- Demandes de réinitialisation envoyées par les clients -->
           <div class="neo-card p-6 space-y-4">
-            <h3 class="font-extrabold text-slate-900 text-base">Demandes de Prestations Clients (${etatApp.demandesPrestation.length})</h3>
-            <div class="space-y-3">
-              ${etatApp.demandesPrestation.map((d) => `
-                <div class="p-4 rounded-2xl border border-slate-200 bg-slate-50/60 space-y-2.5 text-xs">
-                  <div class="flex flex-wrap items-center justify-between gap-2">
-                    <span class="font-extrabold text-slate-900">${d.nomClient} (${d.telephone}) — ${d.prestation}</span>
-                    <span class="px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800 font-bold">${d.statut}</span>
-                  </div>
-                  <p class="text-slate-600">${d.details} • Date : ${d.dateSouhaitee} • Adresse : ${d.adresse}</p>
-                  ${d.reponseAdmin ? `<p class="text-emerald-700 font-semibold">Dernière réponse envoyée (${d.dateReponseAdmin}) : « ${d.reponseAdmin} »</p>` : ''}
-                  <form onsubmit="repondreDemandeAdmin(event, '${d.id}')" class="flex gap-2">
-                    <input id="rep-demande-${d.id}" type="text" required placeholder="Écrire une réponse au client..." value="${d.reponseAdmin || ''}" class="flex-1 px-3 py-2 rounded-xl border border-slate-300 bg-white" />
-                    <button type="submit" class="px-4 py-2 rounded-xl bg-slate-900 text-white font-bold">Répondre</button>
-                  </form>
-                </div>
-              `).join('')}
+            <div>
+              <h3 class="font-black text-slate-900 text-base">Demandes de Réinitialisation Clients (${demandes.length})</h3>
+              <p class="text-xs text-slate-500">Traitez les demandes reçues depuis l'Espace Client et transmettez le nouveau mot de passe par WhatsApp.</p>
             </div>
-          </div>
-
-          <!-- Suggestions & Réclamations -->
-          <div class="neo-card p-6 space-y-4">
-            <h3 class="font-extrabold text-slate-900 text-base">Suggestions &amp; Réclamations Clients (${etatApp.reclamations.length})</h3>
-            <div class="space-y-3">
-              ${etatApp.reclamations.map((r) => `
-                <div class="p-4 rounded-2xl border border-slate-200 bg-slate-50/60 space-y-2.5 text-xs">
-                  <div class="flex flex-wrap items-center justify-between gap-2">
-                    <span class="font-extrabold text-slate-900">${r.nomClient} • ${r.type} ${r.numeroRecuAssocie ? `(${r.numeroRecuAssocie})` : ''}</span>
-                    <span class="px-2.5 py-0.5 rounded-full ${r.statut === 'Traitée' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'} font-bold">${r.statut}</span>
-                  </div>
-                  <p class="text-slate-700">${r.message}</p>
-                  <form onsubmit="repondreReclamationAdmin(event, '${r.id}')" class="flex gap-2">
-                    <input id="rep-rec-${r.id}" type="text" required placeholder="Écrire une réponse au client..." value="${r.reponseAdmin || ''}" class="flex-1 px-3 py-2 rounded-xl border border-slate-300 bg-white" />
-                    <button type="submit" class="px-4 py-2 rounded-xl bg-indigo-600 text-white font-bold">Répondre</button>
-                  </form>
-                </div>
-              `).join('')}
-            </div>
-          </div>
-
-          <!-- Liste des clients enregistrés -->
-          <div class="neo-card p-6 space-y-4">
-            <h3 class="font-extrabold text-slate-900 text-base">Clients Enregistrés (${etatApp.clients.length})</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-              ${etatApp.clients.map((cl) => {
-                const nbCmd = etatApp.commandes.filter((c) => c.clientId === cl.id).length;
-                return `
-                  <div class="p-4 rounded-2xl border border-slate-200 flex items-center justify-between">
-                    <div>
-                      <p class="font-extrabold text-slate-900 text-sm">${cl.nomComplet}</p>
-                      <p class="text-slate-500">${cl.telephone} • ${cl.email}</p>
-                      <p class="text-slate-500">${cl.adresse}</p>
+            ${demandes.length === 0 ? `
+              <p class="text-xs text-slate-500 bg-slate-50 p-4 rounded-xl border border-slate-200">Aucune demande de réinitialisation de mot de passe en attente.</p>
+            ` : `
+              <div class="space-y-3">
+                ${demandes.map((d) => {
+                  const telClean = (d.telephone || '').replace(/\D/g, '');
+                  const waDest = telClean.startsWith('225') ? telClean : `225${telClean}`;
+                  return `
+                    <div class="p-4 rounded-2xl border border-slate-200 bg-slate-50/70 flex flex-col lg:flex-row lg:items-center justify-between gap-3 text-xs">
+                      <div class="space-y-1">
+                        <div class="flex flex-wrap items-center gap-2">
+                          <span class="font-extrabold text-slate-900">${d.nomClient}</span>
+                          <span class="text-slate-500">${d.telephone} • ${d.email}</span>
+                          <span class="px-2.5 py-0.5 rounded-full ${d.statut === 'Réinitialisé' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'} font-bold">${d.statut}</span>
+                        </div>
+                        <p class="text-slate-500">Demandé le ${d.creeLe} ${d.nouveauMdpSouhaite ? `• Mot de passe souhaité : <strong class="text-indigo-700">${d.nouveauMdpSouhaite}</strong>` : ''}</p>
+                      </div>
+                      <form onsubmit="reinitialiserMotDePasseClientAdmin(event, '${d.clientId}', '${d.id}')" class="flex flex-wrap items-center gap-2">
+                        <input id="sec-reset-dem-${d.id}" type="text" required value="${d.nouveauMdpSouhaite || 'neo2026'}" placeholder="Nouveau mot de passe" class="px-3 py-2 rounded-xl border border-slate-300 bg-white font-semibold" />
+                        <button type="submit" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold">
+                          Appliquer
+                        </button>
+                        <a href="https://wa.me/${waDest}?text=${encodeURIComponent(`Bonjour ${d.nomClient}, votre mot de passe NEO PRESSING a été réinitialisé.`)}" target="_blank" rel="noopener noreferrer" class="px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 font-bold">
+                          <i class="fa-brands fa-whatsapp"></i> WhatsApp
+                        </a>
+                      </form>
                     </div>
-                    <span class="px-3 py-1 rounded-full bg-slate-100 font-bold text-slate-700">${nbCmd} cmd</span>
+                  `;
+                }).join('')}
+              </div>
+            `}
+          </div>
+
+          <!-- Réinitialisation directe par compte client -->
+          <div class="neo-card p-6 space-y-4">
+            <h3 class="font-black text-slate-900 text-base">Réinitialisation Directe d'un Compte Client</h3>
+            <div class="space-y-3">
+              ${etatApp.clients.map((cl) => `
+                <div class="p-4 rounded-2xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                  <div>
+                    <p class="font-extrabold text-slate-900 text-sm">${cl.nomComplet}</p>
+                    <p class="text-slate-500">${cl.telephone} • ${cl.email}</p>
                   </div>
-                `;
-              }).join('')}
+                  <form onsubmit="reinitialiserMotDePasseClientAdmin(event, '${cl.id}')" class="flex items-center gap-2">
+                    <input id="sec-reset-cli-${cl.id}" type="text" required placeholder="Nouveau mot de passe" class="px-3 py-2 rounded-xl border border-slate-300 font-semibold" />
+                    <button type="submit" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold">
+                      Réinitialiser
+                    </button>
+                  </form>
+                </div>
+              `).join('')}
             </div>
           </div>
         </div>
@@ -2430,3 +2527,5 @@
   </script>
 </body>
 </html>
+
+   
