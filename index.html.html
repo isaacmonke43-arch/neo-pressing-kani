@@ -1,0 +1,2432 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NEO PRESSING — KANI | Gestion, Suivi QR Code &amp; Administration</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(circle at top right, #eef2ff 0%, #f8fafc 45%, #f1f5f9 100%);
+      color: #0f172a;
+      overflow-x: hidden;
+    }
+    .neo-gradient {
+      background: linear-gradient(135deg, #1d4ed8 0%, #4f46e5 52%, #0891b2 100%);
+    }
+    .neo-glass-badge {
+      background: rgba(255, 255, 255, 0.14);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.24);
+    }
+    .neo-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 1.25rem;
+      box-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.08);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+    .neo-card:hover {
+      box-shadow: 0 16px 36px -12px rgba(79, 70, 229, 0.14);
+    }
+    @keyframes scanPulse {
+      0%, 100% { transform: translateY(0%); opacity: 0.9; }
+      50% { transform: translateY(155px); opacity: 0.45; }
+    }
+    .scan-laser {
+      animation: scanPulse 2.2s ease-in-out infinite;
+    }
+    @media print {
+      body * {
+        visibility: hidden !important;
+      }
+      #receipt-print-zone, #receipt-print-zone * {
+        visibility: visible !important;
+      }
+      #receipt-print-zone {
+        position: fixed !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 16px !important;
+        background: #ffffff !important;
+        box-shadow: none !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Conteneur de notifications Toast -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-[100] flex flex-col gap-2.5 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+
+  <!-- En-tête de navigation -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 no-print">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-wrap items-center justify-between gap-3 py-3">
+
+        <!-- Identité NEO PRESSING -->
+        <button type="button" onclick="changerVue('home')" class="flex items-center gap-3 text-left group focus:outline-none">
+          <div id="brand-logo-container" class="h-12 px-2.5 rounded-2xl bg-white border border-slate-200 flex items-center justify-center shadow-sm group-hover:scale-105 transition overflow-hidden">
+            <img
+              id="brand-logo-img"
+              src="image_d742bf.jpg"
+              alt="Logo NEO PRESSING"
+              class="h-11 w-auto object-contain"
+              onerror="this.classList.add('hidden'); document.getElementById('brand-logo-svg').classList.remove('hidden');"
+            />
+            <svg id="brand-logo-svg" class="hidden h-11 w-auto" viewBox="0 0 215 92" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="neoClockGrad" x1="20" y1="8" x2="95" y2="66" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#0ea5e9" />
+                  <stop offset="50%" stop-color="#4f46e5" />
+                  <stop offset="100%" stop-color="#6d28d9" />
+                </linearGradient>
+                <radialGradient id="neoIronSphere" cx="0.35" cy="0.3" r="0.7">
+                  <stop offset="0%" stop-color="#38bdf8" />
+                  <stop offset="55%" stop-color="#0284c7" />
+                  <stop offset="100%" stop-color="#0369a1" />
+                </radialGradient>
+              </defs>
+              <path d="M92 18A28 28 0 1 0 92 54" stroke="url(#neoClockGrad)" stroke-width="6.5" stroke-linecap="round" />
+              <path d="M68 20V36L57 45" stroke="#5b21b6" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+              <circle cx="68" cy="36" r="3" fill="#cbd5e1" />
+              <circle cx="116" cy="36" r="28" fill="url(#neoIronSphere)" />
+              <ellipse cx="109" cy="21" rx="12" ry="5" transform="rotate(-22 109 21)" fill="white" fill-opacity="0.35" />
+              <path d="M97 38C99 29 109 25 123 26L131 27C133 23 136 22 137 24C138 27 135 34 133 38H97Z" fill="white" fill-opacity="0.92" />
+              <path d="M103 33C105 29.5 111 28.5 120 29L119 33H103Z" fill="#0284c7" />
+              <rect x="94" y="40" width="41" height="4.5" rx="2.2" fill="white" />
+              <text x="107" y="77" text-anchor="middle" fill="#0f172a" font-family="Inter, sans-serif" font-weight="900" font-size="14.5" letter-spacing="1.2">NEO PRESSING</text>
+              <text x="107" y="88" text-anchor="middle" fill="#334155" font-family="Inter, sans-serif" font-style="italic" font-weight="700" font-size="7.3">on ajoute de l'élégance à vos vêtements</text>
+            </svg>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span id="brand-name-display" class="font-black text-lg sm:text-xl tracking-tight text-slate-900">NEO PRESSING</span>
+              <span class="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-cyan-50 text-cyan-700 border border-cyan-200">
+                KANI
+              </span>
+            </div>
+            <p class="text-[11px] text-slate-500 font-medium">
+              On ajoute de l'élégance à vos vêtements • <span id="brand-phone-display" class="text-slate-700 font-semibold">05 02 72 45 50</span>
+            </p>
+          </div>
+        </button>
+
+        <!-- Boutons de navigation principaux -->
+        <nav class="flex items-center gap-1.5 sm:gap-2 bg-slate-100 p-1 rounded-xl border border-slate-200">
+          <button type="button" id="nav-home" onclick="changerVue('home')" class="nav-btn px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition bg-white text-indigo-700 shadow-sm">
+            <i class="fa-solid fa-qrcode mr-1.5"></i>Accueil &amp; Suivi
+          </button>
+          <button type="button" id="nav-client" onclick="changerVue('client')" class="nav-btn px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition text-slate-600 hover:text-slate-900">
+            <i class="fa-solid fa-user-check mr-1.5"></i>Espace Client
+          </button>
+          <button type="button" id="nav-admin" onclick="changerVue('admin')" class="nav-btn px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition text-slate-600 hover:text-slate-900">
+            <i class="fa-solid fa-shield-halved mr-1.5"></i>Administration
+          </button>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTENU PRINCIPAL -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+
+    <!-- ===================================================================== -->
+    <!-- VUE 1 : ACCUEIL, SUIVI QR CODE, SIMULATEUR DE DEVIS & CATALOGUE      -->
+    <!-- ===================================================================== -->
+    <section id="view-home" class="space-y-8">
+
+      <!-- Bannière principale + Recherche de suivi + Visuel PUB NEO PRESSING -->
+      <div class="neo-gradient rounded-[2rem] p-6 sm:p-10 text-white shadow-2xl relative overflow-hidden border border-indigo-400/20">
+        <div class="pointer-events-none absolute -top-24 -right-24 w-80 h-80 rounded-full bg-cyan-300/20 blur-3xl"></div>
+        <div class="pointer-events-none absolute -bottom-24 -left-24 w-80 h-80 rounded-full bg-indigo-900/40 blur-3xl"></div>
+
+        <div class="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+          <div class="lg:col-span-7 space-y-5">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full neo-glass-badge text-xs font-extrabold tracking-wide">
+                <i class="fa-solid fa-sparkles text-amber-300"></i> Boutique KANI • Élégance &amp; Fraîcheur
+              </span>
+              <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-400/20 border border-emerald-300/30 text-emerald-100 text-xs font-bold">
+                <i class="fa-solid fa-qrcode"></i> Suivi QR en direct
+              </span>
+            </div>
+
+            <h1 class="text-3xl sm:text-5xl font-black leading-[1.12] tracking-tight">
+              Vos vêtements méritent un soin <span class="text-cyan-200">impeccable</span> à KANI
+            </h1>
+            <p class="text-sm sm:text-base text-blue-100/95 max-w-2xl leading-relaxed">
+              Suivez chaque étape de votre commande en temps réel, téléchargez votre reçu officiel avec QR Code et validez la réception de vos articles en toute simplicité.
+            </p>
+
+            <!-- Formulaire de suivi -->
+            <form onsubmit="rechercherCommandeForm(event)" class="bg-white p-2 rounded-2xl shadow-xl flex flex-col sm:flex-row gap-2 max-w-2xl border border-white/60">
+              <div class="flex-1 flex items-center px-3.5">
+                <i class="fa-solid fa-magnifying-glass text-indigo-500 mr-2.5"></i>
+                <input
+                  id="input-recherche-suivi"
+                  type="text"
+                  placeholder="Ex : NEO-2026-001 ou TRK-8841"
+                  class="w-full py-2.5 text-sm text-slate-900 font-semibold placeholder-slate-400 focus:outline-none"
+                />
+              </div>
+              <div class="flex gap-2">
+                <button type="button" onclick="ouvrirScannerQr()" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs sm:text-sm transition flex items-center gap-1.5">
+                  <i class="fa-solid fa-camera text-indigo-600"></i>
+                  <span>Scanner QR</span>
+                </button>
+                <button type="submit" class="px-5 py-2.5 rounded-xl neo-gradient text-white font-extrabold text-xs sm:text-sm shadow-md hover:opacity-95 transition">
+                  Suivre
+                </button>
+              </div>
+            </form>
+
+            <!-- Raccourcis démo -->
+            <div class="flex flex-wrap items-center gap-2 text-xs text-blue-100 pt-1">
+              <span class="font-bold text-cyan-200"><i class="fa-solid fa-bolt mr-1"></i>Test rapide :</span>
+              <button type="button" onclick="rechercheRapide('NEO-2026-001')" class="px-3 py-1 rounded-full neo-glass-badge hover:bg-white/25 font-bold transition">NEO-2026-001 (À valider)</button>
+              <button type="button" onclick="rechercheRapide('NEO-2026-002')" class="px-3 py-1 rounded-full neo-glass-badge hover:bg-white/25 font-bold transition">NEO-2026-002 (Préparation)</button>
+              <button type="button" onclick="rechercheRapide('NEO-2026-003')" class="px-3 py-1 rounded-full neo-glass-badge hover:bg-white/25 font-bold transition">NEO-2026-003 (Livré)</button>
+            </div>
+
+            <!-- Points forts visuels -->
+            <div class="grid grid-cols-3 gap-2.5 pt-2 max-w-xl text-center">
+              <div class="p-2.5 rounded-2xl neo-glass-badge">
+                <p class="text-sm sm:text-base font-black text-white">1 000 F</p>
+                <p class="text-[11px] text-cyan-100 font-semibold">Pressing &amp; Laverie</p>
+              </div>
+              <div class="p-2.5 rounded-2xl neo-glass-badge">
+                <p class="text-sm sm:text-base font-black text-white">100 F</p>
+                <p class="text-[11px] text-cyan-100 font-semibold">Repassage / article</p>
+              </div>
+              <div class="p-2.5 rounded-2xl neo-glass-badge">
+                <p class="text-sm sm:text-base font-black text-white">500 F</p>
+                <p class="text-[11px] text-cyan-100 font-semibold">Livraison KANI</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Visuel Publicitaire PUB NEO PRESSING + Accès Rapide -->
+          <div class="lg:col-span-5 space-y-4">
+            <div class="bg-white rounded-3xl p-3.5 shadow-2xl border border-white/60 text-slate-900">
+              <div class="relative rounded-2xl overflow-hidden bg-gradient-to-b from-slate-50 to-slate-100 flex items-center justify-center min-h-[270px] max-h-80">
+                <img
+                  id="home-pub-img"
+                  src="PUB NEO PRESSING.jpg"
+                  data-fallbacks='["PUB%20NEO%20PRESSING.jpg","./PUB NEO PRESSING.jpg","./PUB%20NEO%20PRESSING.jpg"]'
+                  alt="Publicité NEO PRESSING — Chemises pliées et sous housse"
+                  class="w-full h-72 object-contain"
+                  onload="this.classList.remove('hidden'); const fb=document.getElementById('home-pub-fallback'); if(fb) fb.classList.add('hidden');"
+                  onerror="gererErreurImagePub(this);"
+                />
+                <div id="home-pub-fallback" class="w-full min-h-[270px] bg-gradient-to-br from-slate-900 via-indigo-950 to-sky-900 text-white p-6 flex flex-col justify-between">
+                  <div class="flex items-center justify-between">
+                    <span class="px-3 py-1 rounded-full bg-cyan-400/20 border border-cyan-300/30 text-cyan-200 text-[11px] font-extrabold">NEO PRESSING • KANI</span>
+                    <span class="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center">
+                      <i class="fa-solid fa-shirt text-xl text-cyan-300"></i>
+                    </span>
+                  </div>
+                  <div class="my-3 flex items-center gap-4 bg-white/10 p-3.5 rounded-2xl border border-white/10">
+                    <div class="w-12 h-12 rounded-2xl bg-indigo-500/30 flex items-center justify-center shrink-0">
+                      <i class="fa-solid fa-sparkles text-2xl text-amber-300"></i>
+                    </div>
+                    <div>
+                      <p class="text-sm font-black text-white">Chemises pliées &amp; sous housse</p>
+                      <p class="text-[11px] text-sky-200">Finition vapeur soignée et protection garantie</p>
+                    </div>
+                  </div>
+                  <div class="space-y-1">
+                    <p class="text-base font-black text-cyan-200">On ajoute de l'élégance à vos vêtements</p>
+                    <p class="text-xs text-slate-200">Pressing • Laverie • Repassage • Livraison 500 FCFA</p>
+                  </div>
+                </div>
+                <span class="absolute top-3 left-3 px-3 py-1 rounded-full bg-indigo-600/90 text-white text-[11px] font-extrabold shadow">
+                  AFFICHE OFFICIELLE • KANI
+                </span>
+              </div>
+            </div>
+
+            <div class="neo-glass-badge rounded-2xl p-4 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-extrabold uppercase tracking-wider text-cyan-200">Accès Express Client</span>
+                <span class="px-2.5 py-0.5 rounded-full bg-emerald-400/25 text-emerald-100 text-[11px] font-bold">Disponible • KANI</span>
+              </div>
+              <div class="grid grid-cols-2 gap-3 text-xs">
+                <button type="button" onclick="changerVue('client'); definirOngletClient('prestations');" class="p-3 rounded-xl bg-white/15 hover:bg-white/25 text-left transition space-y-1">
+                  <i class="fa-solid fa-truck-fast text-base text-cyan-200"></i>
+                  <p class="font-extrabold text-white">Demander une collecte</p>
+                  <p class="text-blue-100 text-[11px]">500 FCFA à domicile à KANI</p>
+                </button>
+                <button type="button" onclick="changerVue('client')" class="p-3 rounded-xl bg-white/15 hover:bg-white/25 text-left transition space-y-1">
+                  <i class="fa-solid fa-file-invoice text-base text-amber-200"></i>
+                  <p class="font-extrabold text-white">Mes Reçus PDF</p>
+                  <p class="text-blue-100 text-[11px]">Historique &amp; QR Codes</p>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Résultat du suivi en temps réel -->
+      <div id="resultat-suivi-conteneur" class="neo-card p-6 sm:p-8"></div>
+
+      <!-- Simulateur de devis rapide + Catalogue des prestations -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <div class="lg:col-span-4 neo-card p-6 space-y-4">
+          <div class="flex items-center gap-2">
+            <span class="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+              <i class="fa-solid fa-calculator"></i>
+            </span>
+            <div>
+              <h3 class="font-black text-slate-900 text-base">Simulateur de Devis</h3>
+              <p class="text-[11px] text-slate-500">Estimez votre facture en quelques secondes</p>
+            </div>
+          </div>
+
+          <div class="space-y-3 text-xs">
+            <div>
+              <label class="flex justify-between font-bold text-slate-700 mb-1">
+                <span>Pressing &amp; Nettoyage à sec (kg/lot)</span>
+                <span class="text-indigo-700">1 000 F</span>
+              </label>
+              <input id="sim-pressing" type="number" min="0" value="1" oninput="calculerDevisSimulateur()" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
+            </div>
+            <div>
+              <label class="flex justify-between font-bold text-slate-700 mb-1">
+                <span>Laverie &amp; Séchage (kg/lot)</span>
+                <span class="text-indigo-700">1 000 F</span>
+              </label>
+              <input id="sim-laverie" type="number" min="0" value="0" oninput="calculerDevisSimulateur()" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
+            </div>
+            <div>
+              <label class="flex justify-between font-bold text-slate-700 mb-1">
+                <span>Repassage Vapeur (articles)</span>
+                <span class="text-indigo-700">100 F / art.</span>
+              </label>
+              <input id="sim-repassage" type="number" min="0" value="3" oninput="calculerDevisSimulateur()" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
+            </div>
+            <label class="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer">
+              <span class="font-bold text-slate-800"><i class="fa-solid fa-truck-fast text-cyan-600 mr-1.5"></i>Livraison à domicile (KANI)</span>
+              <input id="sim-livraison" type="checkbox" checked onchange="calculerDevisSimulateur()" class="accent-indigo-600 w-4 h-4" />
+            </label>
+          </div>
+
+          <div id="resultat-devis-simulateur" class="p-4 rounded-2xl bg-indigo-50 border border-indigo-200 space-y-2"></div>
+
+          <button type="button" onclick="changerVue('client'); definirOngletClient('prestations');" class="w-full py-2.5 rounded-xl neo-gradient text-white font-extrabold text-xs shadow">
+            Commander cette prestation
+          </button>
+        </div>
+
+        <div class="lg:col-span-8 space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-2">
+            <div>
+              <h2 class="text-xl sm:text-2xl font-black text-slate-900">Nos Prestations &amp; Tarifs Officiels</h2>
+              <p class="text-xs sm:text-sm text-slate-500">Tarification transparente en Francs CFA — Dépôt en boutique ou collecte à domicile à KANI.</p>
+            </div>
+          </div>
+          <div id="grille-catalogue-prestations" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- VUE 2 : ESPACE CLIENT                                                 -->
+    <!-- ===================================================================== -->
+    <section id="view-client" class="hidden space-y-6">
+      <div id="contenu-espace-client"></div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- VUE 3 : ESPACE ADMINISTRATEUR                                         -->
+    <!-- ===================================================================== -->
+    <section id="view-admin" class="hidden space-y-6">
+
+      <!-- Portail d'authentification Administrateur -->
+      <div id="portail-connexion-admin" class="max-w-md mx-auto neo-card p-6 sm:p-8 space-y-5">
+        <div class="text-center space-y-2">
+          <div class="inline-flex items-center justify-center p-2.5 rounded-2xl bg-slate-50 border border-slate-200 mx-auto shadow-sm">
+            <img
+              src="image_d742bf.jpg"
+              alt="Logo NEO PRESSING"
+              class="h-16 w-auto object-contain"
+              onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');"
+            />
+            <svg class="hidden h-16 w-auto" viewBox="0 0 215 92" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M92 18A28 28 0 1 0 92 54" stroke="#4f46e5" stroke-width="6.5" stroke-linecap="round" />
+              <path d="M68 20V36L57 45" stroke="#5b21b6" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+              <circle cx="116" cy="36" r="28" fill="#0284c7" />
+              <path d="M97 38C99 29 109 25 123 26L131 27C133 23 136 22 137 24C138 27 135 34 133 38H97Z" fill="white" />
+              <rect x="94" y="40" width="41" height="4.5" rx="2.2" fill="white" />
+              <text x="107" y="77" text-anchor="middle" fill="#0f172a" font-family="Inter, sans-serif" font-weight="900" font-size="14.5" letter-spacing="1.2">NEO PRESSING</text>
+              <text x="107" y="88" text-anchor="middle" fill="#334155" font-family="Inter, sans-serif" font-style="italic" font-weight="700" font-size="7.3">on ajoute de l'élégance à vos vêtements</text>
+            </svg>
+          </div>
+          <h2 class="text-xl font-black text-slate-900">Espace Administrateur Sécurisé</h2>
+          <p class="text-xs text-slate-500">
+            Accès réservé à la direction de NEO PRESSING (tableau financier, gestion des commandes et suivi clients).
+          </p>
+        </div>
+
+        <form onsubmit="authentifierAdmin(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">Code d'accès Administrateur</label>
+            <input
+              id="input-code-admin"
+              type="password"
+              required
+              placeholder="Saisissez votre code d'accès..."
+              class="w-full px-4 py-3 rounded-xl border border-slate-300 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+          <button type="submit" class="w-full py-3 rounded-xl neo-gradient text-white font-extrabold text-sm shadow-md hover:opacity-95 transition">
+            <i class="fa-solid fa-right-to-bracket mr-2"></i>Déverrouiller le Tableau de Bord
+          </button>
+        </form>
+      </div>
+
+      <!-- Tableau de bord Administrateur -->
+      <div id="tableau-bord-admin" class="hidden space-y-6">
+        <div class="neo-card p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-extrabold">SESSION ADMIN ACTIVE</span>
+              <h2 class="text-lg sm:text-xl font-black text-slate-900">Administration NEO PRESSING</h2>
+            </div>
+            <p class="text-xs text-slate-500 mt-0.5">Gestion financière confidentielle, commandes, reçus QR Code et messagerie clients.</p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <button type="button" id="admin-tab-finance" onclick="definirOngletAdmin('finance')" class="admin-tab-btn px-3.5 py-2 rounded-xl text-xs font-extrabold neo-gradient text-white shadow-sm">
+              <i class="fa-solid fa-chart-line mr-1.5"></i>Tableau Financier
+            </button>
+            <button type="button" id="admin-tab-commandes" onclick="definirOngletAdmin('commandes')" class="admin-tab-btn px-3.5 py-2 rounded-xl text-xs font-extrabold bg-slate-100 text-slate-700 hover:bg-slate-200">
+              <i class="fa-solid fa-receipt mr-1.5"></i>Commandes &amp; Reçus
+            </button>
+            <button type="button" id="admin-tab-clients" onclick="definirOngletAdmin('clients')" class="admin-tab-btn px-3.5 py-2 rounded-xl text-xs font-extrabold bg-slate-100 text-slate-700 hover:bg-slate-200">
+              <i class="fa-solid fa-users mr-1.5"></i>Clients, Demandes &amp; Config
+            </button>
+            <button type="button" onclick="deconnecterAdmin()" class="px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold">
+              <i class="fa-solid fa-lock mr-1"></i>Verrouiller
+            </button>
+          </div>
+        </div>
+
+        <div id="contenu-onglet-admin"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Pied de page -->
+  <footer class="bg-white border-t border-slate-200 py-5 mt-10 no-print">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+      <div>
+        <strong id="footer-brand-name" class="text-slate-800">NEO PRESSING</strong> — <span id="footer-location">KANI</span> • Tél / WhatsApp : <strong id="footer-phone" class="text-slate-800">05 02 72 45 50</strong> • <span id="footer-domain" class="text-indigo-600 font-semibold">https://neopressing-kani.ci</span>
+      </div>
+      <div class="flex flex-wrap items-center gap-3">
+        <span id="sync-status-badge" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold text-[11px]">
+          <i class="fa-solid fa-rotate"></i> Synchro postes active
+        </span>
+        <span class="font-semibold text-slate-700">aplication developper par monke flany isaac</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ======================================================================= -->
+  <!-- MODALES INTERACTIVES                                                    -->
+  <!-- ======================================================================= -->
+
+  <!-- Modale 1 : Scanner QR Code -->
+  <div id="modale-scanner-qr" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 space-y-5 shadow-2xl">
+      <div class="flex items-center justify-between">
+        <h3 class="font-black text-slate-900 text-lg">Scanner un QR Code Reçu</h3>
+        <button type="button" onclick="fermerModale('modale-scanner-qr')" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="relative bg-slate-900 rounded-2xl h-48 flex flex-col items-center justify-center overflow-hidden border-2 border-indigo-500">
+        <div class="scan-laser absolute top-2 left-4 right-4 h-0.5 bg-cyan-400 shadow-[0_0_12px_#22d3ee]"></div>
+        <i class="fa-solid fa-qrcode text-5xl text-white/80 mb-2"></i>
+        <p class="text-xs text-slate-300 font-medium">Placez le QR Code du reçu face à la caméra</p>
+      </div>
+
+      <div class="space-y-2">
+        <p class="text-xs font-bold text-slate-600">Ou simuler le scan d'un reçu enregistré :</p>
+        <div id="liste-qr-demo" class="grid grid-cols-1 gap-2"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modale 2 : Reçu PDF & QR Code -->
+  <div id="modale-recu" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 space-y-5 shadow-2xl my-8">
+      <div class="flex items-center justify-between no-print">
+        <h3 class="font-black text-slate-900 text-lg">Reçu Officiel &amp; QR Code</h3>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="window.print()" class="px-4 py-2 rounded-xl neo-gradient text-white font-bold text-xs shadow">
+            <i class="fa-solid fa-file-pdf mr-1.5"></i>Imprimer / PDF
+          </button>
+          <button type="button" onclick="fermerModale('modale-recu')" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      </div>
+
+      <div id="receipt-print-zone" class="border border-slate-200 rounded-2xl p-5 sm:p-6 space-y-5 bg-white"></div>
+    </div>
+  </div>
+
+  <!-- Modale 3 : Validation de livraison client -->
+  <div id="modale-validation" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 space-y-5 shadow-2xl">
+      <div class="flex items-center justify-between">
+        <h3 class="font-black text-slate-900 text-lg">Validation de Livraison</h3>
+        <button type="button" onclick="fermerModale('modale-validation')" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div id="contenu-modale-validation"></div>
+    </div>
+  </div>
+
+  <!-- Modale 4 : Création / Édition de commande (Admin) -->
+  <div id="modale-editeur-commande" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl max-w-3xl w-full p-6 sm:p-8 space-y-5 shadow-2xl my-8">
+      <div class="flex items-center justify-between">
+        <h3 id="titre-editeur-commande" class="font-black text-slate-900 text-lg">Nouvelle Commande</h3>
+        <button type="button" onclick="fermerModale('modale-editeur-commande')" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div id="contenu-editeur-commande"></div>
+    </div>
+  </div>
+
+  <!-- Modale 5 : Suivi de Recouvrement (Paiements en attente) -->
+  <div id="modale-recouvrement" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl max-w-3xl w-full p-6 sm:p-8 space-y-5 shadow-2xl my-8">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="font-black text-slate-900 text-lg">Suivi de Recouvrement — Paiements en Attente</h3>
+          <p class="text-xs text-slate-500">Relancez les clients par WhatsApp/SMS ou encaissez le solde en un clic.</p>
+        </div>
+        <button type="button" onclick="fermerModale('modale-recouvrement')" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div id="contenu-modale-recouvrement"></div>
+    </div>
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- APPLICATION JAVASCRIPT                                                  -->
+  <!-- ======================================================================= -->
+  <script>
+    const CLE_STOCKAGE = 'neo_pressing_kani_etat_v1';
+    const CANAL_SYNCHRO = 'neo_pressing_kani_sync_channel';
+    const CODE_ACCES_ADMIN = 'AngeMam2026@1';
+
+    const CONFIG_MARQUE_DEFAUT = {
+      nomMarque: 'NEO PRESSING',
+      ville: 'KANI',
+      telephone: '05 02 72 45 50',
+      whatsapp: '2250502724550',
+      nomDomaine: 'https://neopressing-kani.ci',
+      urlLogo: 'image_d742bf.jpg',
+      endpointCloud: ''
+    };
+
+    const STATUTS_COMMANDE = [
+      'Commande enregistrée',
+      'Commande en cours de traitement',
+      'Articles en préparation',
+      'Articles prêts à être livrés',
+      'Livraison en attente de validation',
+      'Commande livrée et terminée'
+    ];
+
+    const CATALOGUE_PRESTATIONS = [
+      {
+        id: 'SRV-PRESSING',
+        nom: 'Pressing & Nettoyage à sec',
+        tarif: 1000,
+        unite: 'par kg / lot',
+        icone: 'fa-shirt',
+        description: 'Traitement délicat des costumes, robes, bazins et textiles fragiles avec détachage professionnel.'
+      },
+      {
+        id: 'SRV-LAVERIE',
+        nom: 'Laverie & Séchage',
+        tarif: 1000,
+        unite: 'par kg / lot',
+        icone: 'fa-jug-detergent',
+        description: 'Lavage hygiénique haute performance, adoucissant parfumé et séchage contrôlé.'
+      },
+      {
+        id: 'SRV-REPASSAGE',
+        nom: 'Repassage Vapeur',
+        tarif: 100,
+        unite: 'par article',
+        icone: 'fa-temperature-high',
+        description: 'Finition vapeur haute précision pour un rendu impeccable et sans faux plis.'
+      },
+      {
+        id: 'SRV-LIVRAISON',
+        nom: 'Collecte & Livraison à Domicile',
+        tarif: 500,
+        unite: 'trajet KANI',
+        icone: 'fa-truck-fast',
+        description: 'Ramassage et retour sécurisé de votre linge partout à KANI sur créneau horaire.'
+      }
+    ];
+
+    const ETAT_INITIAL = {
+      configMarque: { ...CONFIG_MARQUE_DEFAUT },
+      clients: [
+        {
+          id: 'CLI-001',
+          nomComplet: 'Awa Koné',
+          telephone: '07 08 45 12 30',
+          email: 'awa.kone@exemple.ci',
+          motDePasse: 'client123',
+          adresse: 'Quartier Résidentiel, KANI',
+          actif: true
+        },
+        {
+          id: 'CLI-002',
+          nomComplet: 'Moussa Bamba',
+          telephone: '05 44 89 10 22',
+          email: 'moussa.bamba@exemple.ci',
+          motDePasse: 'client123',
+          adresse: 'Centre-Ville, près du Marché, KANI',
+          actif: true
+        }
+      ],
+      commandes: [
+        {
+          id: 'CMD-101',
+          numeroRecu: 'NEO-2026-001',
+          codeSuivi: 'TRK-8841',
+          clientId: 'CLI-001',
+          nomClient: 'Awa Koné',
+          telephoneClient: '07 08 45 12 30',
+          adresseClient: 'Quartier Résidentiel, KANI',
+          creeLe: '2026-11-25 09:30',
+          statut: 'Livraison en attente de validation',
+          reduction: 0,
+          montantPaye: 1500,
+          validationLivraison: null,
+          articles: [
+            { designation: 'Pressing & Nettoyage à sec (Lot 2 kg)', quantite: 2, prixUnitaire: 1000 },
+            { designation: 'Repassage Vapeur (Chemises)', quantite: 5, prixUnitaire: 100 },
+            { designation: 'Collecte & Livraison à Domicile', quantite: 1, prixUnitaire: 500 }
+          ]
+        },
+        {
+          id: 'CMD-102',
+          numeroRecu: 'NEO-2026-002',
+          codeSuivi: 'TRK-8842',
+          clientId: 'CLI-002',
+          nomClient: 'Moussa Bamba',
+          telephoneClient: '05 44 89 10 22',
+          adresseClient: 'Centre-Ville, près du Marché, KANI',
+          creeLe: '2026-11-26 08:15',
+          statut: 'Articles en préparation',
+          reduction: 0,
+          montantPaye: 0,
+          validationLivraison: null,
+          articles: [
+            { designation: 'Laverie & Séchage (Lot 3 kg)', quantite: 3, prixUnitaire: 1000 },
+            { designation: 'Repassage Vapeur (Pantalons)', quantite: 4, prixUnitaire: 100 }
+          ]
+        },
+        {
+          id: 'CMD-103',
+          numeroRecu: 'NEO-2026-003',
+          codeSuivi: 'TRK-8843',
+          clientId: 'CLI-001',
+          nomClient: 'Awa Koné',
+          telephoneClient: '07 08 45 12 30',
+          adresseClient: 'Quartier Résidentiel, KANI',
+          creeLe: '2026-11-20 14:20',
+          statut: 'Commande livrée et terminée',
+          reduction: 200,
+          montantPaye: 2300,
+          validationLivraison: {
+            conforme: true,
+            dateValidation: '2026-11-21 17:45',
+            commentaire: 'Articles propres et bien repassés.'
+          },
+          articles: [
+            { designation: 'Pressing & Nettoyage à sec (Robe soirée)', quantite: 2, prixUnitaire: 1000 },
+            { designation: 'Collecte & Livraison à Domicile', quantite: 1, prixUnitaire: 500 }
+          ]
+        }
+      ],
+      demandesPrestation: [
+        {
+          id: 'DEM-001',
+          clientId: 'CLI-001',
+          nomClient: 'Awa Koné',
+          telephone: '07 08 45 12 30',
+          prestation: 'Pressing & Nettoyage à sec (1 000 FCFA par kg / lot)',
+          dateSouhaitee: '2026-11-27',
+          adresse: 'Quartier Résidentiel, KANI',
+          details: '2 grands boubous brodés et 1 costume à récupérer vers 10h.',
+          nomFichier: 'photo_boubou.jpg',
+          statut: 'Confirmée',
+          creeLe: '2026-11-25 16:00',
+          reponseAdmin: 'Bonjour Mme Koné, notre livreur passera demain à 10h00 précises.',
+          dateReponseAdmin: '2026-11-25 16:25'
+        }
+      ],
+      reclamations: [
+        {
+          id: 'REC-001',
+          clientId: 'CLI-001',
+          nomClient: 'Awa Koné',
+          type: 'Suggestion',
+          numeroRecuAssocie: 'NEO-2026-003',
+          message: 'Service très rapide ! Ce serait super d’avoir aussi des housses de protection pour costumes.',
+          statut: 'Traitée',
+          creeLe: '2026-11-22 10:10',
+          reponseAdmin: 'Merci pour votre suggestion ! Des housses de protection sont désormais disponibles en boutique.',
+          dateReponseAdmin: '2026-11-22 14:00'
+        }
+      ]
+    };
+
+    function chargerEtat() {
+      try {
+        const brut = localStorage.getItem(CLE_STOCKAGE);
+        if (!brut) return JSON.parse(JSON.stringify(ETAT_INITIAL));
+        const analyse = JSON.parse(brut);
+        return {
+          configMarque: {
+            ...CONFIG_MARQUE_DEFAUT,
+            ...(analyse.configMarque && typeof analyse.configMarque === 'object' ? analyse.configMarque : {})
+          },
+          clients: Array.isArray(analyse.clients) ? analyse.clients : JSON.parse(JSON.stringify(ETAT_INITIAL.clients)),
+          commandes: Array.isArray(analyse.commandes) ? analyse.commandes : JSON.parse(JSON.stringify(ETAT_INITIAL.commandes)),
+          demandesPrestation: Array.isArray(analyse.demandesPrestation) ? analyse.demandesPrestation : JSON.parse(JSON.stringify(ETAT_INITIAL.demandesPrestation)),
+          reclamations: Array.isArray(analyse.reclamations) ? analyse.reclamations : JSON.parse(JSON.stringify(ETAT_INITIAL.reclamations))
+        };
+      } catch (err) {
+        return JSON.parse(JSON.stringify(ETAT_INITIAL));
+      }
+    }
+
+    let etatApp = chargerEtat();
+    let clientConnecteId = 'CLI-001';
+    let ongletClientActif = 'commandes';
+    let adminAuthentifie = false;
+    let ongletAdminActif = 'finance';
+    let periodeFinanceActive = 'jour';
+    let brouillonCommande = null;
+    let filtreStatutAdmin = 'TOUS';
+    let filtreRechercheAdmin = '';
+
+    const diffuseurPostes = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel(CANAL_SYNCHRO) : null;
+
+    function formaterFCFA(montant) {
+      const n = Math.round(Number(montant) || 0);
+      return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' FCFA';
+    }
+
+    function calculerTotauxCommande(commande) {
+      const sousTotal = (commande.articles || []).reduce((somme, art) => {
+        return somme + (Number(art.quantite) || 0) * (Number(art.prixUnitaire) || 0);
+      }, 0);
+      const reduction = Math.max(0, Number(commande.reduction) || 0);
+      const total = Math.max(0, sousTotal - reduction);
+      const paye = Math.min(total, Math.max(0, Number(commande.montantPaye) || 0));
+      const reste = Math.max(0, total - paye);
+      const statutPaiement = reste === 0 && total > 0 ? 'Payé' : (paye > 0 ? 'Acompte versé' : 'En attente');
+      return { sousTotal, reduction, total, paye, reste, statutPaiement };
+    }
+
+    function afficherToast(message, type = 'info') {
+      const conteneur = document.getElementById('toast-container');
+      if (!conteneur) return;
+      const couleurs = {
+        success: 'bg-emerald-600 text-white border-emerald-700',
+        error: 'bg-rose-600 text-white border-rose-700',
+        info: 'bg-slate-900 text-white border-slate-800'
+      };
+      const el = document.createElement('div');
+      el.className = `pointer-events-auto px-4 py-3 rounded-2xl shadow-xl border text-xs font-bold flex items-center justify-between gap-3 transition ${couleurs[type] || couleurs.info}`;
+      el.innerHTML = `<span>${message}</span><button type="button" onclick="this.parentElement.remove()" class="opacity-80 hover:opacity-100"><i class="fa-solid fa-xmark"></i></button>`;
+      conteneur.appendChild(el);
+      setTimeout(() => { if (el.parentElement) el.remove(); }, 4200);
+    }
+
+    function copierTexte(texte, label = 'Référence') {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(texte);
+      }
+      afficherToast(`${label} (${texte}) copié !`, 'success');
+    }
+
+    function appliquerMarqueUI() {
+      const cfg = { ...CONFIG_MARQUE_DEFAUT, ...(etatApp.configMarque || {}) };
+      etatApp.configMarque = cfg;
+
+      const nomEl = document.getElementById('brand-name-display');
+      const telEl = document.getElementById('brand-phone-display');
+      const footNomEl = document.getElementById('footer-brand-name');
+      const footVilleEl = document.getElementById('footer-location');
+      const footTelEl = document.getElementById('footer-phone');
+      const footDomEl = document.getElementById('footer-domain');
+      const logoImg = document.getElementById('brand-logo-img');
+      const logoSvg = document.getElementById('brand-logo-svg');
+      const pubImg = document.getElementById('home-pub-img');
+      const pubFallback = document.getElementById('home-pub-fallback');
+
+      if (nomEl) nomEl.textContent = cfg.nomMarque;
+      if (telEl) telEl.textContent = cfg.telephone;
+      if (footNomEl) footNomEl.textContent = cfg.nomMarque;
+      if (footVilleEl) footVilleEl.textContent = cfg.ville;
+      if (footTelEl) footTelEl.textContent = cfg.telephone;
+      if (footDomEl) footDomEl.textContent = cfg.nomDomaine;
+      document.title = `${cfg.nomMarque} — ${cfg.ville} | Gestion, Suivi QR Code & Administration`;
+
+      if (logoImg && logoSvg) {
+        const sourceLogo = (cfg.urlLogo || '').trim() || 'image_d742bf.jpg';
+        logoImg.src = sourceLogo;
+        logoImg.classList.remove('hidden');
+        logoSvg.classList.add('hidden');
+      }
+
+      if (pubImg && pubFallback) {
+        pubImg.dataset.fallbackIndex = '0';
+        pubImg.classList.remove('hidden');
+        pubFallback.classList.add('hidden');
+        pubImg.src = 'PUB NEO PRESSING.jpg';
+      }
+    }
+
+    function gererErreurImagePub(imgEl) {
+      if (!imgEl) return;
+      const idx = Number(imgEl.dataset.fallbackIndex || '0');
+      let candidates = [];
+      try {
+        candidates = JSON.parse(imgEl.dataset.fallbacks || '[]');
+      } catch (e) {
+        candidates = [];
+      }
+      if (idx < candidates.length) {
+        imgEl.dataset.fallbackIndex = String(idx + 1);
+        imgEl.src = candidates[idx];
+        return;
+      }
+      imgEl.classList.add('hidden');
+      const fallback = document.getElementById('home-pub-fallback');
+      if (fallback) fallback.classList.remove('hidden');
+    }
+
+    async function pousserVersCloudPartage(snapshot) {
+      const endpoint = (snapshot.configMarque?.endpointCloud || '').trim();
+      if (!endpoint) return;
+      try {
+        await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            updatedAt: new Date().toISOString(),
+            site: snapshot.configMarque?.nomDomaine || 'neo-pressing-kani',
+            data: snapshot
+          })
+        });
+      } catch (err) {
+        // Sauvegarde locale maintenue en cas d'indisponibilité réseau
+      }
+    }
+
+    async function chargerDepuisCloudPartage() {
+      const endpoint = (etatApp.configMarque?.endpointCloud || '').trim();
+      if (!endpoint) return;
+      try {
+        const res = await fetch(endpoint, { method: 'GET' });
+        if (!res.ok) return;
+        const payload = await res.json();
+        const remoteData = payload?.data || payload;
+        if (remoteData && Array.isArray(remoteData.commandes)) {
+          etatApp = {
+            configMarque: { ...CONFIG_MARQUE_DEFAUT, ...(remoteData.configMarque || {}) },
+            clients: Array.isArray(remoteData.clients) ? remoteData.clients : etatApp.clients,
+            commandes: remoteData.commandes,
+            demandesPrestation: Array.isArray(remoteData.demandesPrestation) ? remoteData.demandesPrestation : etatApp.demandesPrestation,
+            reclamations: Array.isArray(remoteData.reclamations) ? remoteData.reclamations : etatApp.reclamations
+          };
+          localStorage.setItem(CLE_STOCKAGE, JSON.stringify(etatApp));
+          appliquerMarqueUI();
+          afficherCataloguePrestations();
+          if (adminAuthentifie) afficherContenuOngletAdmin();
+          afficherToast('Données synchronisées depuis la base partagée.', 'success');
+        }
+      } catch (err) {
+        afficherToast('Impossible de joindre l’URL de synchronisation distante.', 'error');
+      }
+    }
+
+    function sauvegarderEtat() {
+      try {
+        localStorage.setItem(CLE_STOCKAGE, JSON.stringify(etatApp));
+        appliquerMarqueUI();
+        if (diffuseurPostes) {
+          diffuseurPostes.postMessage({ type: 'ETAT_MIS_A_JOUR', ts: Date.now() });
+        }
+        pousserVersCloudPartage(etatApp);
+      } catch (err) {
+        afficherToast('Erreur lors de la sauvegarde locale.', 'error');
+      }
+    }
+
+    if (diffuseurPostes) {
+      diffuseurPostes.onmessage = (event) => {
+        if (event.data?.type === 'ETAT_MIS_A_JOUR') {
+          etatApp = chargerEtat();
+          appliquerMarqueUI();
+          afficherCataloguePrestations();
+          if (!document.getElementById('view-client')?.classList.contains('hidden')) {
+            afficherEspaceClient();
+          }
+          if (adminAuthentifie && !document.getElementById('view-admin')?.classList.contains('hidden')) {
+            afficherContenuOngletAdmin();
+          }
+        }
+      };
+    }
+
+    window.addEventListener('storage', (event) => {
+      if (event.key === CLE_STOCKAGE) {
+        etatApp = chargerEtat();
+        appliquerMarqueUI();
+        afficherCataloguePrestations();
+        if (adminAuthentifie) afficherContenuOngletAdmin();
+      }
+    });
+
+    // -----------------------------------------------------------------------
+    // NAVIGATION ENTRE VUES
+    // -----------------------------------------------------------------------
+    function changerVue(vue) {
+      ['home', 'client', 'admin'].forEach((v) => {
+        const section = document.getElementById(`view-${v}`);
+        const btn = document.getElementById(`nav-${v}`);
+        if (section) section.classList.toggle('hidden', v !== vue);
+        if (btn) {
+          if (v === vue) {
+            btn.className = 'nav-btn px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition bg-white text-indigo-700 shadow-sm';
+          } else {
+            btn.className = 'nav-btn px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition text-slate-600 hover:text-slate-900';
+          }
+        }
+      });
+
+      if (vue === 'client') afficherEspaceClient();
+      if (vue === 'admin') {
+        document.getElementById('portail-connexion-admin').classList.toggle('hidden', adminAuthentifie);
+        document.getElementById('tableau-bord-admin').classList.toggle('hidden', !adminAuthentifie);
+        if (adminAuthentifie) afficherContenuOngletAdmin();
+      }
+    }
+    window.changerVue = changerVue;
+    window.switchView = changerVue;
+
+    function fermerModale(id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.add('hidden');
+    }
+
+    // -----------------------------------------------------------------------
+    // SIMULATEUR DE DEVIS & CATALOGUE (ACCUEIL)
+    // -----------------------------------------------------------------------
+    function calculerDevisSimulateur() {
+      const kgPressing = Math.max(0, Number(document.getElementById('sim-pressing')?.value) || 0);
+      const kgLaverie = Math.max(0, Number(document.getElementById('sim-laverie')?.value) || 0);
+      const nbRepassage = Math.max(0, Number(document.getElementById('sim-repassage')?.value) || 0);
+      const avecLivraison = !!document.getElementById('sim-livraison')?.checked;
+
+      const totalPressing = kgPressing * 1000;
+      const totalLaverie = kgLaverie * 1000;
+      const totalRepassage = nbRepassage * 100;
+      const totalLivraison = avecLivraison ? 500 : 0;
+      const totalEstime = totalPressing + totalLaverie + totalRepassage + totalLivraison;
+
+      const zone = document.getElementById('resultat-devis-simulateur');
+      if (!zone) return;
+      zone.innerHTML = `
+        <div class="flex justify-between text-[11px] text-slate-600">
+          <span>Prestations :</span>
+          <strong>${formaterFCFA(totalPressing + totalLaverie + totalRepassage)}</strong>
+        </div>
+        <div class="flex justify-between text-[11px] text-slate-600">
+          <span>Livraison KANI :</span>
+          <strong>${formaterFCFA(totalLivraison)}</strong>
+        </div>
+        <div class="flex justify-between text-sm font-black text-indigo-800 pt-1.5 border-t border-indigo-200">
+          <span>Estimation Totale :</span>
+          <span>${formaterFCFA(totalEstime)}</span>
+        </div>
+      `;
+    }
+
+    function afficherCataloguePrestations() {
+      const grille = document.getElementById('grille-catalogue-prestations');
+      if (!grille) return;
+      grille.innerHTML = CATALOGUE_PRESTATIONS.map((srv) => `
+        <div class="neo-card p-5 flex flex-col justify-between space-y-4 hover:border-indigo-300 transition">
+          <div class="space-y-2.5">
+            <div class="w-11 h-11 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+              <i class="fa-solid ${srv.icone} text-lg"></i>
+            </div>
+            <h3 class="font-extrabold text-slate-900 text-base">${srv.nom}</h3>
+            <p class="text-xs text-slate-500 leading-relaxed">${srv.description}</p>
+          </div>
+          <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
+            <div>
+              <span class="text-base font-black text-indigo-700">${formaterFCFA(srv.tarif)}</span>
+              <span class="block text-[11px] font-semibold text-slate-400">${srv.unite}</span>
+            </div>
+            <button type="button" onclick="changerVue('client'); definirOngletClient('prestations');" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-indigo-600 hover:text-white text-slate-700 font-bold text-xs transition">
+              Choisir
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function rechercherCommandeForm(e) {
+      e.preventDefault();
+      const val = (document.getElementById('input-recherche-suivi')?.value || '').trim();
+      if (!val) {
+        afficherToast('Veuillez saisir un numéro de reçu ou un code de suivi.', 'error');
+        return;
+      }
+      rechercheRapide(val);
+    }
+
+    function rechercheRapide(requete) {
+      const input = document.getElementById('input-recherche-suivi');
+      if (input) input.value = requete;
+
+      let cle = requete.trim().toUpperCase();
+      if (cle.startsWith('NEOPRESSING:')) {
+        const morceaux = cle.split(':');
+        cle = morceaux[1] || cle;
+      }
+
+      const commande = etatApp.commandes.find(
+        (c) => c.numeroRecu.toUpperCase() === cle || c.codeSuivi.toUpperCase() === cle
+      );
+      afficherResultatSuivi(commande, requete);
+    }
+
+    function afficherResultatSuivi(commande, requete) {
+      const conteneur = document.getElementById('resultat-suivi-conteneur');
+      if (!conteneur) return;
+
+      if (!commande) {
+        conteneur.innerHTML = `
+          <div class="text-center py-8 space-y-2">
+            <i class="fa-solid fa-circle-exclamation text-3xl text-rose-500"></i>
+            <h3 class="font-extrabold text-slate-900">Aucune commande trouvée pour « ${requete} »</h3>
+            <p class="text-xs text-slate-500">Vérifiez le numéro de reçu (ex. NEO-2026-001) ou scannez le QR Code.</p>
+          </div>
+        `;
+        return;
+      }
+
+      const indexEtape = STATUTS_COMMANDE.indexOf(commande.statut);
+      const totaux = calculerTotauxCommande(commande);
+      const pretPourValidation =
+        commande.statut === 'Articles prêts à être livrés' ||
+        commande.statut === 'Livraison en attente de validation';
+
+      conteneur.innerHTML = `
+        <div class="space-y-6">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-slate-100">
+            <div>
+              <div class="flex flex-wrap items-center gap-2">
+                <button type="button" onclick="copierTexte('${commande.numeroRecu}', 'Numéro de reçu')" class="px-3 py-1 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-extrabold text-xs transition" title="Copier le numéro">
+                  Reçu ${commande.numeroRecu} <i class="fa-regular fa-copy ml-1"></i>
+                </button>
+                <span class="px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 font-bold text-xs">Suivi : ${commande.codeSuivi}</span>
+                <span class="px-2.5 py-1 rounded-full ${totaux.reste === 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'} font-extrabold text-xs">
+                  ${totaux.statutPaiement} (${formaterFCFA(totaux.total)})
+                </span>
+              </div>
+              <h3 class="text-lg sm:text-xl font-black text-slate-900 mt-2">Client : ${commande.nomClient}</h3>
+              <p class="text-xs text-slate-500">Déposé le ${commande.creeLe} • Adresse : ${commande.adresseClient}</p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2">
+              <button type="button" onclick="ouvrirModaleRecu('${commande.id}')" class="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition">
+                <i class="fa-solid fa-file-pdf mr-1.5"></i>Consulter le Reçu PDF
+              </button>
+              ${pretPourValidation ? `
+                <button type="button" onclick="ouvrirModaleValidation('${commande.id}')" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow transition">
+                  <i class="fa-solid fa-check-circle mr-1.5"></i>Valider la livraison
+                </button>
+              ` : ''}
+            </div>
+          </div>
+
+          <!-- Barre de progression en 6 étapes -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-2.5">
+            ${STATUTS_COMMANDE.map((etape, idx) => {
+              const atteint = idx <= indexEtape;
+              const courant = idx === indexEtape;
+              return `
+                <div class="p-3 rounded-2xl border ${courant ? 'border-indigo-600 bg-indigo-50/70' : (atteint ? 'border-emerald-200 bg-emerald-50/40' : 'border-slate-200 bg-slate-50')} space-y-1">
+                  <div class="flex items-center justify-between">
+                    <span class="w-6 h-6 rounded-full text-[11px] font-black flex items-center justify-center ${courant ? 'bg-indigo-600 text-white' : (atteint ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-600')}">
+                      ${atteint ? '<i class="fa-solid fa-check"></i>' : idx + 1}
+                    </span>
+                    ${courant ? '<span class="text-[10px] font-extrabold text-indigo-700 uppercase">Actuel</span>' : ''}
+                  </div>
+                  <p class="text-xs font-bold ${atteint ? 'text-slate-900' : 'text-slate-400'} leading-snug">${etape}</p>
+                </div>
+              `;
+            }).join('')}
+          </div>
+
+          ${commande.validationLivraison ? `
+            <div class="p-4 rounded-2xl ${commande.validationLivraison.conforme ? 'bg-emerald-50 border border-emerald-200 text-emerald-900' : 'bg-amber-50 border border-amber-200 text-amber-900'} text-xs">
+              <strong>${commande.validationLivraison.conforme ? 'Livraison approuvée et conforme' : 'Anomalie signalée avant validation'}</strong>
+              le ${commande.validationLivraison.dateValidation} — « ${commande.validationLivraison.commentaire} »
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    function ouvrirScannerQr() {
+      const liste = document.getElementById('liste-qr-demo');
+      if (liste) {
+        liste.innerHTML = etatApp.commandes.map((cmd) => `
+          <button type="button" onclick="rechercheRapide('NEOPRESSING:${cmd.numeroRecu}:${cmd.codeSuivi}'); fermerModale('modale-scanner-qr');" class="p-3 rounded-xl border border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/40 text-left flex items-center justify-between transition">
+            <div>
+              <span class="font-extrabold text-xs text-slate-900">${cmd.numeroRecu}</span>
+              <span class="text-xs text-slate-500 ml-2">${cmd.nomClient}</span>
+            </div>
+            <span class="text-[11px] font-bold text-indigo-600">Simuler scan <i class="fa-solid fa-arrow-right ml-1"></i></span>
+          </button>
+        `).join('');
+      }
+      document.getElementById('modale-scanner-qr')?.classList.remove('hidden');
+    }
+
+    // -----------------------------------------------------------------------
+    // MODALE REÇU PDF & QR CODE DYNAMIQUE
+    // -----------------------------------------------------------------------
+    function ouvrirModaleRecu(commandeId) {
+      const cmd = etatApp.commandes.find((c) => c.id === commandeId);
+      if (!cmd) return;
+      const totaux = calculerTotauxCommande(cmd);
+      const cfg = { ...CONFIG_MARQUE_DEFAUT, ...(etatApp.configMarque || {}) };
+      const sourceLogoRecu = (cfg.urlLogo || '').trim() || 'image_d742bf.jpg';
+      const zone = document.getElementById('receipt-print-zone');
+
+      zone.innerHTML = `
+        <div class="flex flex-col sm:flex-row justify-between items-start gap-4 pb-4 border-b-2 border-indigo-600">
+          <div class="space-y-1.5">
+            <img src="${sourceLogoRecu}" alt="Logo ${cfg.nomMarque}" class="h-16 w-auto object-contain" onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');" />
+            <svg class="hidden h-16 w-auto" viewBox="0 0 215 92" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M92 18A28 28 0 1 0 92 54" stroke="#4f46e5" stroke-width="6.5" stroke-linecap="round" />
+              <path d="M68 20V36L57 45" stroke="#5b21b6" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+              <circle cx="116" cy="36" r="28" fill="#0284c7" />
+              <path d="M97 38C99 29 109 25 123 26L131 27C133 23 136 22 137 24C138 27 135 34 133 38H97Z" fill="white" />
+              <rect x="94" y="40" width="41" height="4.5" rx="2.2" fill="white" />
+              <text x="107" y="77" text-anchor="middle" fill="#0f172a" font-family="Inter, sans-serif" font-weight="900" font-size="14.5" letter-spacing="1.2">NEO PRESSING</text>
+              <text x="107" y="88" text-anchor="middle" fill="#334155" font-family="Inter, sans-serif" font-style="italic" font-weight="700" font-size="7.3">on ajoute de l'élégance à vos vêtements</text>
+            </svg>
+            <h4 class="text-xl font-black text-slate-900">${cfg.nomMarque}</h4>
+            <p class="text-xs text-slate-500">On ajoute de l'élégance à vos vêtements</p>
+            <p class="text-xs text-slate-700"><strong>Adresse :</strong> ${cfg.ville} • <strong>Tél :</strong> ${cfg.telephone}</p>
+            <p class="text-[11px] text-indigo-600 font-semibold">${cfg.nomDomaine}</p>
+          </div>
+          <div class="text-left sm:text-right space-y-1">
+            <span class="inline-block px-3 py-1 rounded-lg bg-indigo-600 text-white font-black text-xs uppercase">Reçu N° ${cmd.numeroRecu}</span>
+            <p class="text-xs text-slate-600"><strong>Code suivi :</strong> ${cmd.codeSuivi}</p>
+            <p class="text-xs text-slate-600"><strong>Date :</strong> ${cmd.creeLe}</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-xs">
+          <div>
+            <p class="text-slate-400 font-bold uppercase text-[10px]">Client</p>
+            <p class="font-extrabold text-slate-900 text-sm">${cmd.nomClient}</p>
+            <p class="text-slate-600">Tél : ${cmd.telephoneClient}</p>
+          </div>
+          <div>
+            <p class="text-slate-400 font-bold uppercase text-[10px]">Adresse de livraison</p>
+            <p class="font-semibold text-slate-800">${cmd.adresseClient}</p>
+            <p class="text-indigo-700 font-bold mt-0.5">Statut : ${cmd.statut}</p>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs border-collapse">
+            <thead>
+              <tr class="bg-slate-900 text-white">
+                <th class="p-2.5 text-left rounded-tl-lg">Désignation de l'article</th>
+                <th class="p-2.5 text-center">Qté</th>
+                <th class="p-2.5 text-right">Prix Unit.</th>
+                <th class="p-2.5 text-right rounded-tr-lg">Total</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200 border-b border-slate-200">
+              ${cmd.articles.map((art) => `
+                <tr>
+                  <td class="p-2.5 font-semibold text-slate-800">${art.designation}</td>
+                  <td class="p-2.5 text-center font-bold">${art.quantite}</td>
+                  <td class="p-2.5 text-right text-slate-600">${formaterFCFA(art.prixUnitaire)}</td>
+                  <td class="p-2.5 text-right font-extrabold text-slate-900">${formaterFCFA(art.quantite * art.prixUnitaire)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="flex flex-col sm:flex-row justify-between items-center gap-4 pt-2">
+          <div class="flex items-center gap-3">
+            <div id="qr-recu-cible" class="p-2 bg-white border border-slate-200 rounded-xl"></div>
+            <div class="text-[11px] text-slate-500 max-w-[200px]">
+              <strong class="text-slate-800 block">QR Code Unique</strong>
+              Scannez ce code pour suivre ou valider votre livraison en ligne.
+            </div>
+          </div>
+
+          <div class="w-full sm:w-64 space-y-1.5 text-xs bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+            <div class="flex justify-between"><span>Sous-total :</span><strong>${formaterFCFA(totaux.sousTotal)}</strong></div>
+            <div class="flex justify-between text-slate-500"><span>Réduction :</span><span>- ${formaterFCFA(totaux.reduction)}</span></div>
+            <div class="flex justify-between text-sm font-black text-indigo-700 pt-1 border-t border-slate-200">
+              <span>TOTAL À PAYER :</span><span>${formaterFCFA(totaux.total)}</span>
+            </div>
+            <div class="flex justify-between text-emerald-700 font-bold"><span>Montant versé :</span><span>${formaterFCFA(totaux.paye)}</span></div>
+            <div class="flex justify-between font-extrabold ${totaux.reste > 0 ? 'text-rose-600' : 'text-emerald-700'}">
+              <span>Reste à payer :</span><span>${formaterFCFA(totaux.reste)}</span>
+            </div>
+          </div>
+        </div>
+      `;
+
+      const qrCible = document.getElementById('qr-recu-cible');
+      if (qrCible && typeof QRCode !== 'undefined') {
+        qrCible.innerHTML = '';
+        new QRCode(qrCible, {
+          text: `NEOPRESSING:${cmd.numeroRecu}:${cmd.codeSuivi}`,
+          width: 84,
+          height: 84
+        });
+      }
+
+      document.getElementById('modale-recu')?.classList.remove('hidden');
+    }
+
+    // -----------------------------------------------------------------------
+    // VALIDATION DE LIVRAISON CLIENT
+    // -----------------------------------------------------------------------
+    function ouvrirModaleValidation(commandeId) {
+      const cmd = etatApp.commandes.find((c) => c.id === commandeId);
+      if (!cmd) return;
+      const conteneur = document.getElementById('contenu-modale-validation');
+      conteneur.innerHTML = `
+        <form onsubmit="soumettreValidationLivraison(event, '${cmd.id}')" class="space-y-4 text-xs">
+          <div class="p-3.5 rounded-xl bg-indigo-50 border border-indigo-100">
+            <p class="font-extrabold text-indigo-900">Commande ${cmd.numeroRecu} — ${cmd.nomClient}</p>
+            <p class="text-indigo-700 mt-1">Articles prêts : ${cmd.articles.map((a) => `${a.quantite}x ${a.designation}`).join(', ')}</p>
+          </div>
+
+          <div class="space-y-2">
+            <label class="block font-bold text-slate-700">Décision de réception :</label>
+            <label class="flex items-center gap-2 p-3 rounded-xl border border-slate-200 cursor-pointer hover:bg-emerald-50/40">
+              <input type="radio" name="decisionLivraison" value="conforme" checked class="accent-emerald-600" />
+              <span class="font-bold text-slate-800">Articles conformes — J'approuve la livraison</span>
+            </label>
+            <label class="flex items-center gap-2 p-3 rounded-xl border border-slate-200 cursor-pointer hover:bg-amber-50/40">
+              <input type="radio" name="decisionLivraison" value="anomalie" class="accent-amber-600" />
+              <span class="font-bold text-slate-800">Signaler un problème ou une anomalie avant validation</span>
+            </label>
+          </div>
+
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Commentaire ou précision :</label>
+            <textarea id="commentaire-validation-client" rows="3" placeholder="Ex : Tout est parfait, merci !" class="w-full px-3 py-2 rounded-xl border border-slate-300"></textarea>
+          </div>
+
+          <button type="submit" class="w-full py-3 rounded-xl neo-gradient text-white font-extrabold text-sm shadow">
+            Enregistrer ma validation
+          </button>
+        </form>
+      `;
+      document.getElementById('modale-validation')?.classList.remove('hidden');
+    }
+
+    function soumettreValidationLivraison(e, commandeId) {
+      e.preventDefault();
+      const cmd = etatApp.commandes.find((c) => c.id === commandeId);
+      if (!cmd) return;
+      const decision = document.querySelector('input[name="decisionLivraison"]:checked')?.value || 'conforme';
+      const commentaire = (document.getElementById('commentaire-validation-client')?.value || '').trim() ||
+        (decision === 'conforme' ? 'Articles conformes et réceptionnés.' : 'Anomalie signalée par le client.');
+      const horodatage = new Date().toISOString().slice(0, 16).replace('T', ' ');
+
+      cmd.validationLivraison = {
+        conforme: decision === 'conforme',
+        dateValidation: horodatage,
+        commentaire
+      };
+      if (decision === 'conforme') {
+        cmd.statut = 'Commande livrée et terminée';
+      }
+
+      sauvegarderEtat();
+      fermerModale('modale-validation');
+      rechercheRapide(cmd.numeroRecu);
+      if (!document.getElementById('view-client')?.classList.contains('hidden')) {
+        afficherEspaceClient();
+      }
+      afficherToast(
+        decision === 'conforme'
+          ? 'Livraison validée et horodatée avec succès !'
+          : 'Anomalie signalée à l’équipe NEO PRESSING.',
+        decision === 'conforme' ? 'success' : 'info'
+      );
+    }
+
+    // -----------------------------------------------------------------------
+    // ESPACE CLIENT (COMPTE, COMMANDES, PRESTATIONS, RÉCLAMATIONS)
+    // -----------------------------------------------------------------------
+    function definirOngletClient(onglet) {
+      ongletClientActif = onglet;
+      afficherEspaceClient();
+    }
+
+    function afficherEspaceClient() {
+      const conteneur = document.getElementById('contenu-espace-client');
+      if (!conteneur) return;
+
+      const client = etatApp.clients.find((c) => c.id === clientConnecteId);
+
+      if (!client) {
+        conteneur.innerHTML = `
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="neo-card p-6 sm:p-8 space-y-4">
+              <h2 class="text-xl font-black text-slate-900">Connexion Espace Client</h2>
+              <p class="text-xs text-slate-500">Accédez à vos commandes, vos reçus PDF et le suivi de vos prestations.</p>
+              <form onsubmit="connecterClient(event)" class="space-y-3 text-xs">
+                <div>
+                  <label class="block font-bold text-slate-700 mb-1">Téléphone ou E-mail</label>
+                  <input id="login-client-identifiant" type="text" required placeholder="Ex : 07 08 45 12 30 ou awa.kone@exemple.ci" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-semibold" />
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-700 mb-1">Mot de passe</label>
+                  <input id="login-client-mdp" type="password" required placeholder="••••••••" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
+                </div>
+                <div class="flex flex-wrap gap-2 pt-1">
+                  <button type="submit" class="px-5 py-2.5 rounded-xl neo-gradient text-white font-extrabold shadow">Se connecter</button>
+                  <button type="button" onclick="clientConnecteId='CLI-001'; afficherEspaceClient();" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold">
+                    Connexion Démo (Awa Koné)
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <div class="neo-card p-6 sm:p-8 space-y-4">
+              <h2 class="text-xl font-black text-slate-900">Créer un Compte Personnel</h2>
+              <form onsubmit="inscrireClient(event)" class="space-y-3 text-xs">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label class="block font-bold text-slate-700 mb-1">Nom et prénom</label>
+                    <input id="reg-client-nom" type="text" required class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+                  </div>
+                  <div>
+                    <label class="block font-bold text-slate-700 mb-1">Téléphone</label>
+                    <input id="reg-client-tel" type="text" required class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+                  </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label class="block font-bold text-slate-700 mb-1">Adresse e-mail</label>
+                    <input id="reg-client-email" type="email" required class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+                  </div>
+                  <div>
+                    <label class="block font-bold text-slate-700 mb-1">Mot de passe</label>
+                    <input id="reg-client-mdp" type="password" required class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+                  </div>
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-700 mb-1">Adresse de livraison à KANI</label>
+                  <input id="reg-client-adresse" type="text" required class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+                </div>
+                <button type="submit" class="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold">
+                  Créer mon compte client
+                </button>
+              </form>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      const mesCommandes = etatApp.commandes.filter((c) => c.clientId === client.id);
+      const mesDemandes = etatApp.demandesPrestation.filter((d) => d.clientId === client.id);
+      const mesReclamations = etatApp.reclamations.filter((r) => r.clientId === client.id);
+
+      conteneur.innerHTML = `
+        <div class="neo-card p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <span class="px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 text-[11px] font-extrabold">COMPTE CLIENT</span>
+            <h2 class="text-xl font-black text-slate-900 mt-1">Bienvenue, ${client.nomComplet}</h2>
+            <p class="text-xs text-slate-500">${client.telephone} • ${client.email} • ${client.adresse}</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button type="button" onclick="definirOngletClient('commandes')" class="px-3.5 py-2 rounded-xl text-xs font-extrabold ${ongletClientActif === 'commandes' ? 'neo-gradient text-white' : 'bg-slate-100 text-slate-700'}">
+              Mes Commandes &amp; Reçus (${mesCommandes.length})
+            </button>
+            <button type="button" onclick="definirOngletClient('prestations')" class="px-3.5 py-2 rounded-xl text-xs font-extrabold ${ongletClientActif === 'prestations' ? 'neo-gradient text-white' : 'bg-slate-100 text-slate-700'}">
+              Demande de Prestation (${mesDemandes.length})
+            </button>
+            <button type="button" onclick="definirOngletClient('reclamations')" class="px-3.5 py-2 rounded-xl text-xs font-extrabold ${ongletClientActif === 'reclamations' ? 'neo-gradient text-white' : 'bg-slate-100 text-slate-700'}">
+              Suggestions &amp; Réclamations (${mesReclamations.length})
+            </button>
+            <button type="button" onclick="clientConnecteId=null; afficherEspaceClient();" class="px-3 py-2 rounded-xl bg-rose-50 text-rose-700 border border-rose-200 text-xs font-bold">
+              Déconnexion
+            </button>
+          </div>
+        </div>
+
+        ${ongletClientActif === 'commandes' ? `
+          <div class="space-y-3">
+            ${mesCommandes.map((cmd) => {
+              const totaux = calculerTotauxCommande(cmd);
+              const aValider = cmd.statut === 'Articles prêts à être livrés' || cmd.statut === 'Livraison en attente de validation';
+              return `
+                <div class="neo-card p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                  <div class="space-y-1 text-xs">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <span class="font-black text-sm text-slate-900">${cmd.numeroRecu}</span>
+                      <span class="px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 font-bold">${cmd.statut}</span>
+                      <span class="px-2.5 py-0.5 rounded-full ${totaux.reste === 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'} font-bold">
+                        Total : ${formaterFCFA(totaux.total)} • Reste : ${formaterFCFA(totaux.reste)}
+                      </span>
+                    </div>
+                    <p class="text-slate-500">Déposé le ${cmd.creeLe} • ${cmd.articles.length} ligne(s) d'articles</p>
+                  </div>
+                  <div class="flex flex-wrap gap-2">
+                    <button type="button" onclick="ouvrirModaleRecu('${cmd.id}')" class="px-3.5 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs">
+                      <i class="fa-solid fa-file-pdf mr-1"></i>Reçu PDF
+                    </button>
+                    ${aValider ? `
+                      <button type="button" onclick="ouvrirModaleValidation('${cmd.id}')" class="px-3.5 py-2 rounded-xl bg-emerald-600 text-white font-extrabold text-xs">
+                        <i class="fa-solid fa-check-circle mr-1"></i>Valider livraison
+                      </button>
+                    ` : ''}
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        ` : ''}
+
+        ${ongletClientActif === 'prestations' ? `
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div class="lg:col-span-5 neo-card p-6 space-y-4">
+              <h3 class="font-black text-slate-900 text-base">Demander une prestation en ligne</h3>
+              <form onsubmit="soumettreDemandePrestation(event)" class="space-y-3 text-xs">
+                <div>
+                  <label class="block font-bold text-slate-700 mb-1">Prestation souhaitée</label>
+                  <select id="demande-prestation-choix" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-semibold">
+                    ${CATALOGUE_PRESTATIONS.map((s) => `<option value="${s.nom} (${formaterFCFA(s.tarif)} ${s.unite})">${s.nom} — ${formaterFCFA(s.tarif)} ${s.unite}</option>`).join('')}
+                  </select>
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-700 mb-1">Date souhaitée</label>
+                  <input id="demande-prestation-date" type="date" required value="2026-11-27" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-700 mb-1">Adresse de collecte / livraison</label>
+                  <input id="demande-prestation-adresse" type="text" required value="${client.adresse}" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-700 mb-1">Détails des articles (poids estimé, nombre)</label>
+                  <textarea id="demande-prestation-details" rows="3" required placeholder="Ex : 1 lot de 3 kg en laverie + 4 chemises à repasser..." class="w-full px-3 py-2 rounded-xl border border-slate-300"></textarea>
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-700 mb-1">Photo ou document (optionnel)</label>
+                  <input id="demande-prestation-fichier" type="file" class="w-full text-xs text-slate-500" />
+                </div>
+                <button type="submit" class="w-full py-2.5 rounded-xl neo-gradient text-white font-extrabold">
+                  Envoyer ma demande
+                </button>
+              </form>
+            </div>
+
+            <div class="lg:col-span-7 space-y-3">
+              <h3 class="font-black text-slate-900 text-base">Suivi de mes demandes &amp; réponses NEO PRESSING</h3>
+              ${mesDemandes.length === 0 ? `<div class="neo-card p-6 text-xs text-slate-500">Aucune demande enregistrée pour le moment.</div>` : mesDemandes.map((d) => `
+                <div class="neo-card p-5 space-y-2.5 text-xs">
+                  <div class="flex items-center justify-between">
+                    <span class="font-extrabold text-slate-900">${d.prestation}</span>
+                    <span class="px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 font-bold">${d.statut}</span>
+                  </div>
+                  <p class="text-slate-600">${d.details}</p>
+                  <p class="text-slate-400">Souhaité le ${d.dateSouhaitee} • Lieu : ${d.adresse}</p>
+                  ${d.reponseAdmin ? `
+                    <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900">
+                      <strong class="block text-[11px] uppercase text-emerald-700"><i class="fa-solid fa-reply mr-1"></i>Réponse de NEO PRESSING (${d.dateReponseAdmin || 'Aujourd’hui'}) :</strong>
+                      <p class="mt-1 font-medium">${d.reponseAdmin}</p>
+                    </div>
+                  ` : ''}
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        ` : ''}
+
+        ${ongletClientActif === 'reclamations' ? `
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div class="lg:col-span-5 neo-card p-6 space-y-4">
+              <h3 class="font-black text-slate-900 text-base">Envoyer une suggestion ou réclamation</h3>
+              <form onsubmit="soumettreReclamationClient(event)" class="space-y-3 text-xs">
+                <div>
+                  <label class="block font-bold text-slate-700 mb-1">Type de message</label>
+                  <select id="rec-client-type" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-semibold">
+                    <option value="Suggestion">Suggestion d'amélioration</option>
+                    <option value="Réclamation">Réclamation commande / livraison</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-700 mb-1">Numéro de reçu concerné (optionnel)</label>
+                  <input id="rec-client-recu" type="text" placeholder="Ex : NEO-2026-001" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-700 mb-1">Votre message</label>
+                  <textarea id="rec-client-message" rows="4" required placeholder="Décrivez votre besoin ou votre retour..." class="w-full px-3 py-2 rounded-xl border border-slate-300"></textarea>
+                </div>
+                <button type="submit" class="w-full py-2.5 rounded-xl neo-gradient text-white font-extrabold">
+                  Transmettre à NEO PRESSING
+                </button>
+              </form>
+            </div>
+
+            <div class="lg:col-span-7 space-y-3">
+              <h3 class="font-black text-slate-900 text-base">Historique &amp; Réponses reçues</h3>
+              ${mesReclamations.map((r) => `
+                <div class="neo-card p-5 space-y-2.5 text-xs">
+                  <div class="flex items-center justify-between">
+                    <span class="font-extrabold text-slate-900">${r.type} ${r.numeroRecuAssocie ? `(${r.numeroRecuAssocie})` : ''}</span>
+                    <span class="px-2.5 py-0.5 rounded-full ${r.statut === 'Traitée' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'} font-bold">${r.statut}</span>
+                  </div>
+                  <p class="text-slate-700">${r.message}</p>
+                  ${r.reponseAdmin ? `
+                    <div class="p-3 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-950">
+                      <strong class="block text-[11px] uppercase text-indigo-700"><i class="fa-solid fa-reply mr-1"></i>Réponse de NEO PRESSING (${r.dateReponseAdmin || 'Aujourd’hui'}) :</strong>
+                      <p class="mt-1 font-medium">${r.reponseAdmin}</p>
+                    </div>
+                  ` : '<p class="text-[11px] text-slate-400 italic">En attente de réponse de l’administration...</p>'}
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        ` : ''}
+      `;
+    }
+
+    function connecterClient(e) {
+      e.preventDefault();
+      const idVal = (document.getElementById('login-client-identifiant')?.value || '').trim().toLowerCase();
+      const mdpVal = (document.getElementById('login-client-mdp')?.value || '').trim();
+      const trouve = etatApp.clients.find(
+        (c) => (c.email.toLowerCase() === idVal || c.telephone.replace(/\s+/g, '') === idVal.replace(/\s+/g, '')) && c.motDePasse === mdpVal
+      );
+      if (!trouve) {
+        afficherToast('Identifiants client incorrects.', 'error');
+        return;
+      }
+      clientConnecteId = trouve.id;
+      afficherEspaceClient();
+      afficherToast(`Bienvenue ${trouve.nomComplet} !`, 'success');
+    }
+
+    function inscrireClient(e) {
+      e.preventDefault();
+      const nouveau = {
+        id: 'CLI-' + Date.now(),
+        nomComplet: document.getElementById('reg-client-nom').value.trim(),
+        telephone: document.getElementById('reg-client-tel').value.trim(),
+        email: document.getElementById('reg-client-email').value.trim(),
+        motDePasse: document.getElementById('reg-client-mdp').value.trim(),
+        adresse: document.getElementById('reg-client-adresse').value.trim(),
+        actif: true
+      };
+      etatApp.clients.push(nouveau);
+      clientConnecteId = nouveau.id;
+      sauvegarderEtat();
+      afficherEspaceClient();
+      afficherToast('Compte client créé avec succès !', 'success');
+    }
+
+    function soumettreDemandePrestation(e) {
+      e.preventDefault();
+      const client = etatApp.clients.find((c) => c.id === clientConnecteId);
+      if (!client) return;
+      const fichierInput = document.getElementById('demande-prestation-fichier');
+      const nomFichier = fichierInput?.files?.[0]?.name || '';
+      etatApp.demandesPrestation.unshift({
+        id: 'DEM-' + Date.now(),
+        clientId: client.id,
+        nomClient: client.nomComplet,
+        telephone: client.telephone,
+        prestation: document.getElementById('demande-prestation-choix').value,
+        dateSouhaitee: document.getElementById('demande-prestation-date').value,
+        adresse: document.getElementById('demande-prestation-adresse').value.trim(),
+        details: document.getElementById('demande-prestation-details').value.trim(),
+        nomFichier,
+        statut: 'En attente de confirmation',
+        creeLe: new Date().toISOString().slice(0, 16).replace('T', ' '),
+        reponseAdmin: '',
+        dateReponseAdmin: ''
+      });
+      sauvegarderEtat();
+      afficherEspaceClient();
+      afficherToast('Demande de prestation envoyée !', 'success');
+    }
+
+    function soumettreReclamationClient(e) {
+      e.preventDefault();
+      const client = etatApp.clients.find((c) => c.id === clientConnecteId);
+      if (!client) return;
+      etatApp.reclamations.unshift({
+        id: 'REC-' + Date.now(),
+        clientId: client.id,
+        nomClient: client.nomComplet,
+        type: document.getElementById('rec-client-type').value,
+        numeroRecuAssocie: document.getElementById('rec-client-recu').value.trim(),
+        message: document.getElementById('rec-client-message').value.trim(),
+        statut: 'En cours',
+        creeLe: new Date().toISOString().slice(0, 16).replace('T', ' '),
+        reponseAdmin: '',
+        dateReponseAdmin: ''
+      });
+      sauvegarderEtat();
+      afficherEspaceClient();
+      afficherToast('Votre message a bien été transmis.', 'success');
+    }
+
+    // -----------------------------------------------------------------------
+    // ESPACE ADMINISTRATEUR (AUTHENTIFICATION, FINANCES, COMMANDES, CONFIG)
+    // -----------------------------------------------------------------------
+    function authentifierAdmin(e) {
+      e.preventDefault();
+      const code = (document.getElementById('input-code-admin')?.value || '').trim();
+      if (code === CODE_ACCES_ADMIN) {
+        adminAuthentifie = true;
+        document.getElementById('input-code-admin').value = '';
+        document.getElementById('portail-connexion-admin').classList.add('hidden');
+        document.getElementById('tableau-bord-admin').classList.remove('hidden');
+        afficherContenuOngletAdmin();
+        afficherToast('Accès administrateur déverrouillé.', 'success');
+      } else {
+        afficherToast('Code d’accès administrateur invalide.', 'error');
+      }
+    }
+
+    function deconnecterAdmin() {
+      adminAuthentifie = false;
+      document.getElementById('tableau-bord-admin').classList.add('hidden');
+      document.getElementById('portail-connexion-admin').classList.remove('hidden');
+      afficherToast('Espace administrateur verrouillé.', 'info');
+    }
+
+    function definirOngletAdmin(onglet) {
+      ongletAdminActif = onglet;
+      ['finance', 'commandes', 'clients'].forEach((t) => {
+        const btn = document.getElementById(`admin-tab-${t}`);
+        if (!btn) return;
+        if (t === onglet) {
+          btn.className = 'admin-tab-btn px-3.5 py-2 rounded-xl text-xs font-extrabold neo-gradient text-white shadow-sm';
+        } else {
+          btn.className = 'admin-tab-btn px-3.5 py-2 rounded-xl text-xs font-extrabold bg-slate-100 text-slate-700 hover:bg-slate-200';
+        }
+      });
+      afficherContenuOngletAdmin();
+    }
+
+    function afficherContenuOngletAdmin() {
+      if (!adminAuthentifie) return;
+      const conteneur = document.getElementById('contenu-onglet-admin');
+      if (!conteneur) return;
+
+      if (ongletAdminActif === 'finance') {
+        afficherFinanceAdmin(conteneur);
+      } else if (ongletAdminActif === 'commandes') {
+        afficherCommandesAdmin(conteneur);
+      } else if (ongletAdminActif === 'clients') {
+        afficherClientsAdmin(conteneur);
+      }
+    }
+
+    function calculerStatistiquesFinancieres() {
+      let chiffreAffairesTotal = 0;
+      let recettesEncaissees = 0;
+      let paiementsEnAttente = 0;
+      let nbPayees = 0;
+      let nbImpayees = 0;
+      const commandesEnAttente = [];
+
+      etatApp.commandes.forEach((cmd) => {
+        const tot = calculerTotauxCommande(cmd);
+        chiffreAffairesTotal += tot.total;
+        recettesEncaissees += tot.paye;
+        paiementsEnAttente += tot.reste;
+        if (tot.reste === 0 && tot.total > 0) {
+          nbPayees++;
+        } else {
+          nbImpayees++;
+          commandesEnAttente.push({ commande: cmd, totaux: tot });
+        }
+      });
+
+      return {
+        chiffreAffairesTotal,
+        recettesEncaissees,
+        paiementsEnAttente,
+        nbPayees,
+        nbImpayees,
+        commandesEnAttente
+      };
+    }
+
+    function definirPeriodeFinance(periode) {
+      periodeFinanceActive = periode;
+      afficherContenuOngletAdmin();
+    }
+
+    function afficherFinanceAdmin(conteneur) {
+      if (!adminAuthentifie) return;
+      const fin = calculerStatistiquesFinancieres();
+
+      const seriesParPeriode = {
+        jour: [
+          { label: 'Lun', valeur: 18500 },
+          { label: 'Mar', valeur: 24000 },
+          { label: 'Mer', valeur: 19500 },
+          { label: 'Jeu', valeur: 31000 },
+          { label: 'Ven', valeur: 28500 },
+          { label: 'Sam', valeur: 36000 },
+          { label: 'Auj.', valeur: fin.chiffreAffairesTotal }
+        ],
+        semaine: [
+          { label: 'Sem. 1', valeur: 95000 },
+          { label: 'Sem. 2', valeur: 118000 },
+          { label: 'Sem. 3', valeur: 134500 },
+          { label: 'Sem. 4', valeur: 142000 + fin.chiffreAffairesTotal }
+        ],
+        mois: [
+          { label: 'Août', valeur: 410000 },
+          { label: 'Sept.', valeur: 465000 },
+          { label: 'Oct.', valeur: 520000 },
+          { label: 'Nov.', valeur: 545000 + fin.chiffreAffairesTotal }
+        ]
+      };
+
+      const barres = seriesParPeriode[periodeFinanceActive] || seriesParPeriode.jour;
+      const maxVal = Math.max(...barres.map((b) => b.valeur), 1);
+
+      conteneur.innerHTML = `
+        <div class="space-y-6">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="neo-card p-5 space-y-1">
+              <span class="text-xs font-bold text-slate-400 uppercase">Chiffre d'affaires total</span>
+              <p class="text-2xl font-black text-slate-900">${formaterFCFA(fin.chiffreAffairesTotal)}</p>
+              <p class="text-[11px] text-indigo-600 font-bold">${etatApp.commandes.length} commande(s) enregistrée(s)</p>
+            </div>
+
+            <div class="neo-card p-5 space-y-1">
+              <span class="text-xs font-bold text-slate-400 uppercase">Recettes encaissées</span>
+              <p class="text-2xl font-black text-emerald-600">${formaterFCFA(fin.recettesEncaissees)}</p>
+              <p class="text-[11px] text-emerald-700 font-bold">${fin.nbPayees} commande(s) soldée(s)</p>
+            </div>
+
+            <button type="button" onclick="ouvrirModaleRecouvrement()" class="neo-card p-5 space-y-1 text-left hover:border-amber-400 hover:bg-amber-50/30 transition group">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-amber-700 uppercase">Paiements en attente</span>
+                <span class="text-[11px] font-extrabold text-amber-700 group-hover:underline">Recouvrer <i class="fa-solid fa-arrow-right ml-0.5"></i></span>
+              </div>
+              <p class="text-2xl font-black text-amber-600">${formaterFCFA(fin.paiementsEnAttente)}</p>
+              <p class="text-[11px] text-slate-500 font-semibold">${fin.nbImpayees} commande(s) à encaisser (cliquer ici)</p>
+            </button>
+
+            <div class="neo-card p-5 space-y-1">
+              <span class="text-xs font-bold text-slate-400 uppercase">Taux d'encaissement</span>
+              <p class="text-2xl font-black text-indigo-700">
+                ${fin.chiffreAffairesTotal > 0 ? Math.round((fin.recettesEncaissees / fin.chiffreAffairesTotal) * 100) : 100}%
+              </p>
+              <p class="text-[11px] text-slate-500 font-semibold">Payées : ${fin.nbPayees} • Impayées : ${fin.nbImpayees}</p>
+            </div>
+          </div>
+
+          <div class="neo-card p-6 space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h3 class="font-black text-slate-900 text-base">Évolution des Revenus</h3>
+                <p class="text-xs text-slate-500">Visualisation par jour, semaine et mois (FCFA)</p>
+              </div>
+              <div class="flex gap-1.5 bg-slate-100 p-1 rounded-xl">
+                <button type="button" onclick="definirPeriodeFinance('jour')" class="px-3 py-1.5 rounded-lg text-xs font-bold ${periodeFinanceActive === 'jour' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-600'}">Jour</button>
+                <button type="button" onclick="definirPeriodeFinance('semaine')" class="px-3 py-1.5 rounded-lg text-xs font-bold ${periodeFinanceActive === 'semaine' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-600'}">Semaine</button>
+                <button type="button" onclick="definirPeriodeFinance('mois')" class="px-3 py-1.5 rounded-lg text-xs font-bold ${periodeFinanceActive === 'mois' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-600'}">Mois</button>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-4 sm:grid-cols-7 gap-3 items-end h-48 pt-6">
+              ${barres.map((b) => {
+                const hauteurPct = Math.max(12, Math.round((b.valeur / maxVal) * 100));
+                return `
+                  <div class="flex flex-col items-center gap-1.5 h-full justify-end">
+                    <span class="text-[10px] font-extrabold text-slate-700">${formaterFCFA(b.valeur).replace(' FCFA', '')}</span>
+                    <div style="height: ${hauteurPct}%" class="w-full max-w-[44px] rounded-t-xl neo-gradient transition-all"></div>
+                    <span class="text-xs font-bold text-slate-500">${b.label}</span>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function ouvrirModaleRecouvrement() {
+      if (!adminAuthentifie) return;
+      const fin = calculerStatistiquesFinancieres();
+      const conteneur = document.getElementById('contenu-modale-recouvrement');
+      conteneur.innerHTML = `
+        ${fin.commandesEnAttente.length === 0 ? `
+          <div class="p-8 text-center rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 space-y-1">
+            <i class="fa-solid fa-circle-check text-2xl"></i>
+            <p class="font-extrabold">Aucun paiement en attente !</p>
+            <p class="text-xs">Toutes les commandes enregistrées sont entièrement soldées.</p>
+          </div>
+        ` : `
+          <div class="space-y-3 max-h-[65vh] overflow-y-auto pr-1">
+            ${fin.commandesEnAttente.map(({ commande, totaux }) => {
+              const texteRelance = `Bonjour ${commande.nomClient}, rappel ${etatApp.configMarque?.nomMarque || 'NEO PRESSING'} (${etatApp.configMarque?.ville || 'KANI'}) : il reste ${formaterFCFA(totaux.reste)} à régler sur votre reçu ${commande.numeroRecu} (Total : ${formaterFCFA(totaux.total)}). WhatsApp / Tél : ${etatApp.configMarque?.telephone || '05 02 72 45 50'}.`;
+              const telClientClean = (commande.telephoneClient || '').replace(/\D/g, '');
+              const numeroWhatsAppDest = telClientClean.startsWith('225') ? telClientClean : (telClientClean ? `225${telClientClean}` : (etatApp.configMarque?.whatsapp || '2250502724550'));
+              const lienWhatsApp = `https://wa.me/${numeroWhatsAppDest}?text=${encodeURIComponent(texteRelance)}`;
+              return `
+                <div class="p-4 rounded-xl border border-amber-200 bg-amber-50/40 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                  <div class="space-y-1 text-xs">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <span class="font-extrabold text-slate-900 text-sm">${commande.nomClient}</span>
+                      <span class="px-2 py-0.5 rounded-md bg-white border border-slate-200 font-bold text-indigo-700">${commande.numeroRecu}</span>
+                      <span class="text-slate-500">• Tél : <strong class="text-slate-800">${commande.telephoneClient}</strong></span>
+                    </div>
+                    <p class="text-slate-600"><i class="fa-solid fa-location-dot text-slate-400 mr-1"></i> ${commande.adresseClient} • Créé le ${commande.creeLe}</p>
+                    <p class="text-slate-700">
+                      Total : <strong>${formaterFCFA(totaux.total)}</strong> • Versé : <strong class="text-emerald-700">${formaterFCFA(totaux.paye)}</strong> • Reste à recouvrer : <strong class="text-rose-600 text-sm">${formaterFCFA(totaux.reste)}</strong>
+                    </p>
+                  </div>
+
+                  <div class="flex flex-wrap items-center gap-2 shrink-0">
+                    <a href="${lienWhatsApp}" target="_blank" rel="noopener noreferrer" class="px-3 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-800 font-bold text-xs transition inline-flex items-center gap-1.5">
+                      <i class="fa-brands fa-whatsapp text-emerald-600 text-sm"></i>
+                      <span>WhatsApp</span>
+                    </a>
+                    <button type="button" onclick="copierRelanceRecouvrement(${JSON.stringify(texteRelance)})" class="px-3 py-2 rounded-xl bg-white hover:bg-slate-100 border border-slate-300 text-slate-800 font-bold text-xs transition inline-flex items-center gap-1.5">
+                      <i class="fa-regular fa-copy text-indigo-600"></i>
+                      <span>Copier relance</span>
+                    </button>
+                    <button type="button" onclick="solderDepuisRecouvrement('${commande.id}')" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow transition inline-flex items-center gap-1.5">
+                      <i class="fa-solid fa-check-double"></i>
+                      <span>Encaisser &amp; Solder</span>
+                    </button>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `}
+      `;
+      document.getElementById('modale-recouvrement')?.classList.remove('hidden');
+    }
+
+    function copierRelanceRecouvrement(texte) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(texte);
+      }
+      afficherToast('Message de relance copié dans le presse-papiers !', 'success');
+    }
+
+    function solderDepuisRecouvrement(commandeId) {
+      solderCommandeAdmin(commandeId);
+      ouvrirModaleRecouvrement();
+    }
+
+    // -----------------------------------------------------------------------
+    // GESTION DES COMMANDES & ÉDITEUR DE REÇUS (ADMIN)
+    // -----------------------------------------------------------------------
+    function afficherCommandesAdmin(conteneur) {
+      if (!adminAuthentifie) return;
+
+      const commandesFiltrees = etatApp.commandes.filter((cmd) => {
+        const matchStatut = filtreStatutAdmin === 'TOUS' || cmd.statut === filtreStatutAdmin;
+        const q = filtreRechercheAdmin.trim().toLowerCase();
+        const matchRecherche =
+          !q ||
+          cmd.numeroRecu.toLowerCase().includes(q) ||
+          cmd.codeSuivi.toLowerCase().includes(q) ||
+          cmd.nomClient.toLowerCase().includes(q) ||
+          (cmd.telephoneClient || '').toLowerCase().includes(q);
+        return matchStatut && matchRecherche;
+      });
+
+      conteneur.innerHTML = `
+        <div class="space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h3 class="font-black text-slate-900 text-lg">Commandes &amp; Reçus QR Code (${commandesFiltrees.length})</h3>
+              <p class="text-xs text-slate-500">Créez, filtrez, modifiez, soldez ou mettez à jour le statut des commandes.</p>
+            </div>
+            <button type="button" onclick="ouvrirEditeurCommande(null)" class="px-4 py-2.5 rounded-xl neo-gradient text-white font-extrabold text-xs sm:text-sm shadow">
+              <i class="fa-solid fa-plus mr-1.5"></i>Nouvelle Commande
+            </button>
+          </div>
+
+          <div class="neo-card p-4 flex flex-col sm:flex-row gap-3 text-xs">
+            <input
+              type="text"
+              value="${filtreRechercheAdmin}"
+              oninput="filtreRechercheAdmin=this.value; afficherCommandesAdmin(document.getElementById('contenu-onglet-admin'));"
+              placeholder="Rechercher par client, téléphone ou N° de reçu..."
+              class="flex-1 px-3.5 py-2 rounded-xl border border-slate-300 font-semibold"
+            />
+            <select
+              onchange="filtreStatutAdmin=this.value; afficherCommandesAdmin(document.getElementById('contenu-onglet-admin'));"
+              class="px-3.5 py-2 rounded-xl border border-slate-300 font-semibold bg-white"
+            >
+              <option value="TOUS" ${filtreStatutAdmin === 'TOUS' ? 'selected' : ''}>Tous les statuts</option>
+              ${STATUTS_COMMANDE.map((s) => `<option value="${s}" ${filtreStatutAdmin === s ? 'selected' : ''}>${s}</option>`).join('')}
+            </select>
+          </div>
+
+          <div class="neo-card overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-left">
+                <thead class="bg-slate-900 text-white">
+                  <tr>
+                    <th class="p-3.5">Reçu / Suivi</th>
+                    <th class="p-3.5">Client</th>
+                    <th class="p-3.5">Statut</th>
+                    <th class="p-3.5 text-right">Total</th>
+                    <th class="p-3.5 text-right">Reste à payer</th>
+                    <th class="p-3.5 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200">
+                  ${commandesFiltrees.length === 0 ? `
+                    <tr><td colspan="6" class="p-6 text-center text-slate-500">Aucune commande ne correspond au filtre.</td></tr>
+                  ` : commandesFiltrees.map((cmd) => {
+                    const tot = calculerTotauxCommande(cmd);
+                    return `
+                      <tr class="hover:bg-slate-50">
+                        <td class="p-3.5">
+                          <span class="font-black text-indigo-700 block">${cmd.numeroRecu}</span>
+                          <span class="text-[11px] text-slate-400">${cmd.codeSuivi} • ${cmd.creeLe}</span>
+                        </td>
+                        <td class="p-3.5">
+                          <span class="font-bold text-slate-900 block">${cmd.nomClient}</span>
+                          <span class="text-[11px] text-slate-500">${cmd.telephoneClient}</span>
+                        </td>
+                        <td class="p-3.5">
+                          <select onchange="mettreAJourStatutCommandeAdmin('${cmd.id}', this.value)" class="px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white font-semibold text-xs">
+                            ${STATUTS_COMMANDE.map((s) => `<option value="${s}" ${cmd.statut === s ? 'selected' : ''}>${s}</option>`).join('')}
+                          </select>
+                        </td>
+                        <td class="p-3.5 text-right font-extrabold text-slate-900">${formaterFCFA(tot.total)}</td>
+                        <td class="p-3.5 text-right font-extrabold ${tot.reste > 0 ? 'text-rose-600' : 'text-emerald-600'}">
+                          ${formaterFCFA(tot.reste)}
+                        </td>
+                        <td class="p-3.5 text-right">
+                          <div class="inline-flex flex-wrap justify-end gap-1.5">
+                            ${tot.reste > 0 ? `
+                              <button type="button" onclick="solderCommandeAdmin('${cmd.id}')" class="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold">
+                                Solder (Tout payé)
+                              </button>
+                            ` : '<span class="px-2.5 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 font-bold">Soldé</span>'}
+                            <button type="button" onclick="ouvrirEditeurCommande('${cmd.id}')" class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold">
+                              Modifier
+                            </button>
+                            <button type="button" onclick="ouvrirModaleRecu('${cmd.id}')" class="px-2.5 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold">
+                              Reçu PDF
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    `;
+                  }).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function mettreAJourStatutCommandeAdmin(commandeId, nouveauStatut) {
+      const cmd = etatApp.commandes.find((c) => c.id === commandeId);
+      if (!cmd) return;
+      cmd.statut = nouveauStatut;
+      sauvegarderEtat();
+      afficherToast(`Statut mis à jour : ${nouveauStatut}`, 'success');
+    }
+
+    function solderCommandeAdmin(commandeId) {
+      const cmd = etatApp.commandes.find((c) => c.id === commandeId);
+      if (!cmd) return;
+      const tot = calculerTotauxCommande(cmd);
+      cmd.montantPaye = tot.total;
+      sauvegarderEtat();
+      afficherContenuOngletAdmin();
+      afficherToast(`Commande ${cmd.numeroRecu} marquée comme entièrement payée !`, 'success');
+    }
+
+    function ouvrirEditeurCommande(commandeId) {
+      const existante = commandeId ? etatApp.commandes.find((c) => c.id === commandeId) : null;
+      document.getElementById('titre-editeur-commande').textContent = existante
+        ? `Modifier la commande ${existante.numeroRecu}`
+        : 'Créer une nouvelle commande';
+
+      brouillonCommande = existante
+        ? JSON.parse(JSON.stringify(existante))
+        : {
+            id: 'CMD-' + Date.now(),
+            numeroRecu: 'NEO-2026-00' + (etatApp.commandes.length + 1),
+            codeSuivi: 'TRK-' + Math.floor(1000 + Math.random() * 9000),
+            clientId: etatApp.clients[0]?.id || '',
+            nomClient: etatApp.clients[0]?.nomComplet || '',
+            telephoneClient: etatApp.clients[0]?.telephone || '',
+            adresseClient: etatApp.clients[0]?.adresse || 'KANI',
+            creeLe: new Date().toISOString().slice(0, 16).replace('T', ' '),
+            statut: STATUTS_COMMANDE[0],
+            reduction: 0,
+            montantPaye: 0,
+            validationLivraison: null,
+            articles: [
+              { designation: 'Pressing & Nettoyage à sec (par kg / lot)', quantite: 1, prixUnitaire: 1000 }
+            ]
+          };
+
+      const conteneur = document.getElementById('contenu-editeur-commande');
+      conteneur.innerHTML = `
+        <form onsubmit="enregistrerCommandeEditeur(event)" class="space-y-4 text-xs">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Client existant</label>
+              <select onchange="selectionnerClientEditeur(this.value)" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-semibold">
+                <option value="">-- Saisie libre --</option>
+                ${etatApp.clients.map((cl) => `<option value="${cl.id}" ${brouillonCommande.clientId === cl.id ? 'selected' : ''}>${cl.nomComplet} (${cl.telephone})</option>`).join('')}
+              </select>
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Nom complet du client</label>
+              <input id="edit-cmd-nom" type="text" required value="${brouillonCommande.nomClient}" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-semibold" />
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Téléphone</label>
+              <input id="edit-cmd-tel" type="text" required value="${brouillonCommande.telephoneClient}" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Adresse de livraison</label>
+              <input id="edit-cmd-adresse" type="text" required value="${brouillonCommande.adresseClient}" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Statut de la commande</label>
+              <select id="edit-cmd-statut" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-semibold">
+                ${STATUTS_COMMANDE.map((s) => `<option value="${s}" ${brouillonCommande.statut === s ? 'selected' : ''}>${s}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <label class="font-extrabold text-slate-800">Articles &amp; Prestations</label>
+              <div class="flex flex-wrap gap-1.5">
+                <button type="button" onclick="ajouterArticleBrouillon('Pressing & Nettoyage à sec (kg/lot)', 1000)" class="px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 font-bold">+ Pressing (1 000 F)</button>
+                <button type="button" onclick="ajouterArticleBrouillon('Laverie & Séchage (kg/lot)', 1000)" class="px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 font-bold">+ Laverie (1 000 F)</button>
+                <button type="button" onclick="ajouterArticleBrouillon('Repassage Vapeur (article)', 100)" class="px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 font-bold">+ Repassage (100 F)</button>
+                <button type="button" onclick="ajouterArticleBrouillon('Collecte & Livraison à Domicile', 500)" class="px-2.5 py-1 rounded-lg bg-cyan-50 text-cyan-700 font-bold">+ Livraison (500 F)</button>
+              </div>
+            </div>
+
+            <div id="liste-articles-brouillon" class="space-y-2"></div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Réduction (FCFA)</label>
+              <input id="edit-cmd-reduction" type="number" min="0" value="${brouillonCommande.reduction}" oninput="recalculerResumeEditeur()" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Montant versé / payé (FCFA)</label>
+              <div class="flex gap-1.5">
+                <input id="edit-cmd-paye" type="number" min="0" value="${brouillonCommande.montantPaye}" oninput="recalculerResumeEditeur()" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
+                <button type="button" onclick="solderDansEditeur()" class="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold shrink-0">
+                  Solder
+                </button>
+              </div>
+            </div>
+            <div id="resume-financier-editeur" class="flex flex-col justify-center text-right"></div>
+          </div>
+
+          <div class="flex justify-end gap-2 pt-2">
+            <button type="button" onclick="fermerModale('modale-editeur-commande')" class="px-4 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-bold">Annuler</button>
+            <button type="submit" class="px-5 py-2.5 rounded-xl neo-gradient text-white font-extrabold shadow">
+              Enregistrer &amp; Générer le Reçu QR
+            </button>
+          </div>
+        </form>
+      `;
+
+      afficherArticlesBrouillon();
+      recalculerResumeEditeur();
+      document.getElementById('modale-editeur-commande')?.classList.remove('hidden');
+    }
+
+    function selectionnerClientEditeur(clientId) {
+      const cl = etatApp.clients.find((c) => c.id === clientId);
+      if (!cl) return;
+      brouillonCommande.clientId = cl.id;
+      document.getElementById('edit-cmd-nom').value = cl.nomComplet;
+      document.getElementById('edit-cmd-tel').value = cl.telephone;
+      document.getElementById('edit-cmd-adresse').value = cl.adresse;
+    }
+
+    function ajouterArticleBrouillon(designation, prixUnitaire) {
+      brouillonCommande.articles.push({ designation, quantite: 1, prixUnitaire });
+      afficherArticlesBrouillon();
+      recalculerResumeEditeur();
+    }
+
+    function supprimerArticleBrouillon(index) {
+      if (brouillonCommande.articles.length <= 1) return;
+      brouillonCommande.articles.splice(index, 1);
+      afficherArticlesBrouillon();
+      recalculerResumeEditeur();
+    }
+
+    function afficherArticlesBrouillon() {
+      const conteneur = document.getElementById('liste-articles-brouillon');
+      if (!conteneur) return;
+      conteneur.innerHTML = brouillonCommande.articles.map((art, idx) => `
+        <div class="grid grid-cols-12 gap-2 items-center bg-slate-50 p-2 rounded-xl border border-slate-200">
+          <input type="text" value="${art.designation}" oninput="brouillonCommande.articles[${idx}].designation=this.value" class="col-span-6 px-2.5 py-1.5 rounded-lg border border-slate-300 font-semibold" />
+          <input type="number" min="1" value="${art.quantite}" oninput="brouillonCommande.articles[${idx}].quantite=Number(this.value)||1; recalculerResumeEditeur();" class="col-span-2 px-2 py-1.5 rounded-lg border border-slate-300 text-center font-bold" />
+          <input type="number" min="0" value="${art.prixUnitaire}" oninput="brouillonCommande.articles[${idx}].prixUnitaire=Number(this.value)||0; recalculerResumeEditeur();" class="col-span-3 px-2 py-1.5 rounded-lg border border-slate-300 text-right font-bold" />
+          <button type="button" onclick="supprimerArticleBrouillon(${idx})" class="col-span-1 text-rose-600 hover:text-rose-800 text-center">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </div>
+      `).join('');
+    }
+
+    function recalculerResumeEditeur() {
+      if (!brouillonCommande) return;
+      brouillonCommande.reduction = Number(document.getElementById('edit-cmd-reduction')?.value) || 0;
+      brouillonCommande.montantPaye = Number(document.getElementById('edit-cmd-paye')?.value) || 0;
+      const tot = calculerTotauxCommande(brouillonCommande);
+      const box = document.getElementById('resume-financier-editeur');
+      if (box) {
+        box.innerHTML = `
+          <span class="text-[11px] text-slate-500">Total des prix : <strong class="text-slate-900">${formaterFCFA(tot.total)}</strong></span>
+          <span class="text-sm font-black ${tot.reste > 0 ? 'text-rose-600' : 'text-emerald-600'}">
+            Reste à payer : ${formaterFCFA(tot.reste)}
+          </span>
+        `;
+      }
+    }
+
+    function solderDansEditeur() {
+      brouillonCommande.reduction = Number(document.getElementById('edit-cmd-reduction')?.value) || 0;
+      const tot = calculerTotauxCommande(brouillonCommande);
+      document.getElementById('edit-cmd-paye').value = tot.total;
+      recalculerResumeEditeur();
+    }
+
+    function enregistrerCommandeEditeur(e) {
+      e.preventDefault();
+      brouillonCommande.nomClient = document.getElementById('edit-cmd-nom').value.trim();
+      brouillonCommande.telephoneClient = document.getElementById('edit-cmd-tel').value.trim();
+      brouillonCommande.adresseClient = document.getElementById('edit-cmd-adresse').value.trim();
+      brouillonCommande.statut = document.getElementById('edit-cmd-statut').value;
+      brouillonCommande.reduction = Number(document.getElementById('edit-cmd-reduction').value) || 0;
+      brouillonCommande.montantPaye = Number(document.getElementById('edit-cmd-paye').value) || 0;
+
+      const idx = etatApp.commandes.findIndex((c) => c.id === brouillonCommande.id);
+      if (idx >= 0) {
+        etatApp.commandes[idx] = brouillonCommande;
+      } else {
+        etatApp.commandes.unshift(brouillonCommande);
+      }
+
+      sauvegarderEtat();
+      fermerModale('modale-editeur-commande');
+      afficherContenuOngletAdmin();
+      ouvrirModaleRecu(brouillonCommande.id);
+      afficherToast(`Commande ${brouillonCommande.numeroRecu} enregistrée !`, 'success');
+    }
+
+    // -----------------------------------------------------------------------
+    // CLIENTS, DEMANDES, RÉCLAMATIONS, SAUVEGARDE & CONFIGURATION MARQUE
+    // -----------------------------------------------------------------------
+    function exporterSauvegardeJSON() {
+      const donnees = JSON.stringify(etatApp, null, 2);
+      const blob = new Blob([donnees], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const lien = document.createElement('a');
+      lien.href = url;
+      lien.download = `neo-pressing-kani-sauvegarde-${new Date().toISOString().slice(0, 10)}.json`;
+      lien.click();
+      URL.revokeObjectURL(url);
+      afficherToast('Sauvegarde JSON téléchargée !', 'success');
+    }
+
+    function importerSauvegardeJSON(inputEl) {
+      const fichier = inputEl?.files?.[0];
+      if (!fichier) return;
+      const lecteur = new FileReader();
+      lecteur.onload = (ev) => {
+        try {
+          const parsed = JSON.parse(String(ev.target?.result || '{}'));
+          if (!Array.isArray(parsed.commandes)) {
+            afficherToast('Fichier de sauvegarde invalide.', 'error');
+            return;
+          }
+          etatApp = {
+            configMarque: { ...CONFIG_MARQUE_DEFAUT, ...(parsed.configMarque || {}) },
+            clients: Array.isArray(parsed.clients) ? parsed.clients : etatApp.clients,
+            commandes: parsed.commandes,
+            demandesPrestation: Array.isArray(parsed.demandesPrestation) ? parsed.demandesPrestation : [],
+            reclamations: Array.isArray(parsed.reclamations) ? parsed.reclamations : []
+          };
+          sauvegarderEtat();
+          afficherContenuOngletAdmin();
+          afficherToast('Sauvegarde restaurée avec succès !', 'success');
+        } catch (err) {
+          afficherToast('Impossible de lire le fichier JSON.', 'error');
+        }
+      };
+      lecteur.readAsText(fichier);
+      inputEl.value = '';
+    }
+
+    function enregistrerConfigMarqueAdmin(e) {
+      e.preventDefault();
+      etatApp.configMarque = {
+        nomMarque: (document.getElementById('cfg-nom-marque')?.value || 'NEO PRESSING').trim(),
+        ville: (document.getElementById('cfg-ville')?.value || 'KANI').trim(),
+        telephone: (document.getElementById('cfg-telephone')?.value || '05 02 72 45 50').trim(),
+        whatsapp: (document.getElementById('cfg-whatsapp')?.value || '2250502724550').replace(/\D/g, ''),
+        nomDomaine: (document.getElementById('cfg-domaine')?.value || 'https://neopressing-kani.ci').trim(),
+        urlLogo: (document.getElementById('cfg-logo')?.value || '').trim(),
+        endpointCloud: (document.getElementById('cfg-endpoint-cloud')?.value || '').trim()
+      };
+      sauvegarderEtat();
+      afficherToast('Configuration de marque, WhatsApp et synchronisation enregistrée.', 'success');
+      if (etatApp.configMarque.endpointCloud) {
+        chargerDepuisCloudPartage();
+      }
+    }
+
+    function repondreDemandeAdmin(e, demandeId) {
+      e.preventDefault();
+      const dem = etatApp.demandesPrestation.find((d) => d.id === demandeId);
+      if (!dem) return;
+      const input = document.getElementById(`rep-demande-${demandeId}`);
+      const texte = (input?.value || '').trim();
+      if (!texte) return;
+      dem.reponseAdmin = texte;
+      dem.dateReponseAdmin = new Date().toISOString().slice(0, 16).replace('T', ' ');
+      dem.statut = 'Confirmée';
+      sauvegarderEtat();
+      afficherContenuOngletAdmin();
+      afficherToast('Réponse envoyée au client !', 'success');
+    }
+
+    function repondreReclamationAdmin(e, recId) {
+      e.preventDefault();
+      const rec = etatApp.reclamations.find((r) => r.id === recId);
+      if (!rec) return;
+      const input = document.getElementById(`rep-rec-${recId}`);
+      const texte = (input?.value || '').trim();
+      if (!texte) return;
+      rec.reponseAdmin = texte;
+      rec.dateReponseAdmin = new Date().toISOString().slice(0, 16).replace('T', ' ');
+      rec.statut = 'Traitée';
+      sauvegarderEtat();
+      afficherContenuOngletAdmin();
+      afficherToast('Réponse envoyée au client !', 'success');
+    }
+
+    function afficherClientsAdmin(conteneur) {
+      if (!adminAuthentifie) return;
+      const cfg = { ...CONFIG_MARQUE_DEFAUT, ...(etatApp.configMarque || {}) };
+
+      conteneur.innerHTML = `
+        <div class="space-y-6">
+          <!-- Configuration Boutique, Domaine, Logo, WhatsApp & Base Partagée -->
+          <div class="neo-card p-6 space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <h3 class="font-extrabold text-slate-900 text-base sm:text-lg">Personnalisation Boutique, Domaine, Logo, WhatsApp &amp; Sauvegarde</h3>
+                <p class="text-xs text-slate-500">Synchronisation instantanée entre postes ouverts + export/import JSON ou API partagée à KANI.</p>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                <button type="button" onclick="exporterSauvegardeJSON()" class="px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs">
+                  <i class="fa-solid fa-download mr-1"></i> Exporter JSON
+                </button>
+                <label class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs cursor-pointer">
+                  <i class="fa-solid fa-upload mr-1"></i> Importer JSON
+                  <input type="file" accept="application/json" onchange="importerSauvegardeJSON(this)" class="hidden" />
+                </label>
+                <button type="button" onclick="chargerDepuisCloudPartage()" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs">
+                  <i class="fa-solid fa-cloud-arrow-down mr-1"></i> Synchroniser
+                </button>
+              </div>
+            </div>
+
+            <form onsubmit="enregistrerConfigMarqueAdmin(event)" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Nom de l'enseigne</label>
+                <input id="cfg-nom-marque" type="text" required value="${cfg.nomMarque}" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-semibold" />
+              </div>
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Ville / Agence</label>
+                <input id="cfg-ville" type="text" required value="${cfg.ville}" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-semibold" />
+              </div>
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Nom de domaine / URL site</label>
+                <input id="cfg-domaine" type="text" required value="${cfg.nomDomaine}" placeholder="https://neopressing-kani.ci" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-semibold" />
+              </div>
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Téléphone affiché</label>
+                <input id="cfg-telephone" type="text" required value="${cfg.telephone}" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-semibold" />
+              </div>
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Numéro WhatsApp (indicatif pays)</label>
+                <input id="cfg-whatsapp" type="text" required value="${cfg.whatsapp}" placeholder="2250502724550" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-semibold" />
+              </div>
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">URL du Logo (image PNG/JPG)</label>
+                <input id="cfg-logo" type="text" value="${cfg.urlLogo}" placeholder="https://.../logo.png (vide = icône)" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+              </div>
+              <div class="sm:col-span-2 lg:col-span-3">
+                <label class="block font-bold text-slate-700 mb-1">URL Base partagée / API REST (optionnel pour synchronisation multi-appareils)</label>
+                <input id="cfg-endpoint-cloud" type="text" value="${cfg.endpointCloud}" placeholder="https://votre-api.exemple/kani" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+              </div>
+              <div class="sm:col-span-2 lg:col-span-3 flex justify-end pt-1">
+                <button type="submit" class="px-5 py-2.5 rounded-xl neo-gradient text-white font-extrabold text-xs sm:text-sm shadow">
+                  <i class="fa-solid fa-floppy-disk mr-1.5"></i> Enregistrer &amp; Synchroniser
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Demandes de prestations & Réponses directes -->
+          <div class="neo-card p-6 space-y-4">
+            <h3 class="font-extrabold text-slate-900 text-base">Demandes de Prestations Clients (${etatApp.demandesPrestation.length})</h3>
+            <div class="space-y-3">
+              ${etatApp.demandesPrestation.map((d) => `
+                <div class="p-4 rounded-2xl border border-slate-200 bg-slate-50/60 space-y-2.5 text-xs">
+                  <div class="flex flex-wrap items-center justify-between gap-2">
+                    <span class="font-extrabold text-slate-900">${d.nomClient} (${d.telephone}) — ${d.prestation}</span>
+                    <span class="px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800 font-bold">${d.statut}</span>
+                  </div>
+                  <p class="text-slate-600">${d.details} • Date : ${d.dateSouhaitee} • Adresse : ${d.adresse}</p>
+                  ${d.reponseAdmin ? `<p class="text-emerald-700 font-semibold">Dernière réponse envoyée (${d.dateReponseAdmin}) : « ${d.reponseAdmin} »</p>` : ''}
+                  <form onsubmit="repondreDemandeAdmin(event, '${d.id}')" class="flex gap-2">
+                    <input id="rep-demande-${d.id}" type="text" required placeholder="Écrire une réponse au client..." value="${d.reponseAdmin || ''}" class="flex-1 px-3 py-2 rounded-xl border border-slate-300 bg-white" />
+                    <button type="submit" class="px-4 py-2 rounded-xl bg-slate-900 text-white font-bold">Répondre</button>
+                  </form>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- Suggestions & Réclamations -->
+          <div class="neo-card p-6 space-y-4">
+            <h3 class="font-extrabold text-slate-900 text-base">Suggestions &amp; Réclamations Clients (${etatApp.reclamations.length})</h3>
+            <div class="space-y-3">
+              ${etatApp.reclamations.map((r) => `
+                <div class="p-4 rounded-2xl border border-slate-200 bg-slate-50/60 space-y-2.5 text-xs">
+                  <div class="flex flex-wrap items-center justify-between gap-2">
+                    <span class="font-extrabold text-slate-900">${r.nomClient} • ${r.type} ${r.numeroRecuAssocie ? `(${r.numeroRecuAssocie})` : ''}</span>
+                    <span class="px-2.5 py-0.5 rounded-full ${r.statut === 'Traitée' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'} font-bold">${r.statut}</span>
+                  </div>
+                  <p class="text-slate-700">${r.message}</p>
+                  <form onsubmit="repondreReclamationAdmin(event, '${r.id}')" class="flex gap-2">
+                    <input id="rep-rec-${r.id}" type="text" required placeholder="Écrire une réponse au client..." value="${r.reponseAdmin || ''}" class="flex-1 px-3 py-2 rounded-xl border border-slate-300 bg-white" />
+                    <button type="submit" class="px-4 py-2 rounded-xl bg-indigo-600 text-white font-bold">Répondre</button>
+                  </form>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- Liste des clients enregistrés -->
+          <div class="neo-card p-6 space-y-4">
+            <h3 class="font-extrabold text-slate-900 text-base">Clients Enregistrés (${etatApp.clients.length})</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+              ${etatApp.clients.map((cl) => {
+                const nbCmd = etatApp.commandes.filter((c) => c.clientId === cl.id).length;
+                return `
+                  <div class="p-4 rounded-2xl border border-slate-200 flex items-center justify-between">
+                    <div>
+                      <p class="font-extrabold text-slate-900 text-sm">${cl.nomComplet}</p>
+                      <p class="text-slate-500">${cl.telephone} • ${cl.email}</p>
+                      <p class="text-slate-500">${cl.adresse}</p>
+                    </div>
+                    <span class="px-3 py-1 rounded-full bg-slate-100 font-bold text-slate-700">${nbCmd} cmd</span>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      appliquerMarqueUI();
+      afficherCataloguePrestations();
+      calculerDevisSimulateur();
+      rechercheRapide('NEO-2026-001');
+      changerVue('home');
+      if ((etatApp.configMarque?.endpointCloud || '').trim()) {
+        chargerDepuisCloudPartage();
+      }
+    });
+  </script>
+</body>
+</html>
