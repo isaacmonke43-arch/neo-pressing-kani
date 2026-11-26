@@ -294,109 +294,8 @@
       <!-- Résultat de suivi de commande (affiché dynamiquement lorsqu'un code est recherché) -->
       <div id="resultat-suivi-accueil" class="hidden bg-white rounded-3xl border border-sky-200 shadow-lg p-5 sm:p-7 space-y-6"></div>
 
-      <!-- Prestations & Simulateur de devis rapide -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <!-- Carte des services -->
-        <div class="lg:col-span-7 bg-white rounded-3xl border border-slate-200/90 p-5 sm:p-7 shadow-sm space-y-5">
-          <div class="flex items-center justify-between">
-            <div>
-              <span class="text-xs font-extrabold uppercase tracking-wider text-sky-600">Nos expertises</span>
-              <h2 class="text-xl sm:text-2xl font-black text-slate-900">Services disponibles à Kani</h2>
-            </div>
-            <i class="fa-solid fa-wand-magic-sparkles text-2xl text-indigo-600"></i>
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div class="p-4 rounded-2xl bg-sky-50/70 border border-sky-100 space-y-1.5">
-              <div class="w-9 h-9 rounded-xl bg-sky-600 text-white flex items-center justify-center font-bold">
-                <i class="fa-solid fa-spray-can-sparkles"></i>
-              </div>
-              <h3 class="font-extrabold text-slate-900">Pressing Délicat</h3>
-              <p class="text-xs text-slate-600 leading-relaxed">Costumes, robes de cérémonie, tissus fins, bazins et tenues sensibles traités avec soin.</p>
-            </div>
-
-            <div class="p-4 rounded-2xl bg-indigo-50/70 border border-indigo-100 space-y-1.5">
-              <div class="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold">
-                <i class="fa-solid fa-soap"></i>
-              </div>
-              <h3 class="font-extrabold text-slate-900">Laverie &amp; Détachage</h3>
-              <p class="text-xs text-slate-600 leading-relaxed">Lavage en profondeur, traitement ciblé des taches et fraîcheur longue durée.</p>
-            </div>
-
-            <div class="p-4 rounded-2xl bg-amber-50/70 border border-amber-100 space-y-1.5">
-              <div class="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold">
-                <i class="fa-solid fa-iron"></i>
-              </div>
-              <h3 class="font-extrabold text-slate-900">Repassage Vapeur</h3>
-              <p class="text-xs text-slate-600 leading-relaxed">Chemises, pantalons, draps et tenues professionnelles repassés sans faux plis.</p>
-            </div>
-
-            <div class="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-100 space-y-1.5">
-              <div class="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold">
-                <i class="fa-solid fa-truck-fast"></i>
-              </div>
-              <h3 class="font-extrabold text-slate-900">Collecte &amp; Livraison</h3>
-              <p class="text-xs text-slate-600 leading-relaxed">Récupération et livraison de vos vêtements sur film protecteur directement à votre adresse à Kani.</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Simulateur de devis rapide -->
-        <div class="lg:col-span-5 bg-white rounded-3xl border border-slate-200/90 p-5 sm:p-7 shadow-sm flex flex-col justify-between space-y-5">
-          <div class="space-y-4">
-            <div class="flex items-center justify-between">
-              <div>
-                <span class="text-xs font-extrabold uppercase tracking-wider text-indigo-600">Estimation instantanée</span>
-                <h2 class="text-xl font-black text-slate-900">Simulateur de devis</h2>
-              </div>
-              <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-50 text-indigo-700">FCFA</span>
-            </div>
-
-            <div class="space-y-3 text-sm">
-              <div>
-                <label class="block font-bold text-slate-700 mb-1">Type d'article</label>
-                <select id="sim-article" onchange="calculerDevisRapide()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50 font-semibold text-slate-800">
-                  <option value="1000" data-nom="Chemise / Haut">Chemise / Haut (1 000 FCFA)</option>
-                  <option value="1200" data-nom="Pantalon / Jupe">Pantalon / Jupe (1 200 FCFA)</option>
-                  <option value="2500" data-nom="Robe / Bazin">Robe / Bazin (2 500 FCFA)</option>
-                  <option value="3500" data-nom="Costume complet">Costume complet (3 500 FCFA)</option>
-                  <option value="3000" data-nom="Drap / Couverture">Drap / Couverture (3 000 FCFA)</option>
-                </select>
-              </div>
-
-              <div class="grid grid-cols-2 gap-3">
-                <div>
-                  <label class="block font-bold text-slate-700 mb-1">Quantité</label>
-                  <input id="sim-qte" type="number" min="1" max="100" value="3" oninput="calculerDevisRapide()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50 font-bold text-slate-800" />
-                </div>
-                <div>
-                  <label class="block font-bold text-slate-700 mb-1">Livraison Kani</label>
-                  <select id="sim-livraison" onchange="calculerDevisRapide()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50 font-semibold text-slate-800">
-                    <option value="0">En boutique (0 F)</option>
-                    <option value="500">Livraison Kani (+500 F)</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="p-4 rounded-2xl bg-slate-900 text-white space-y-3">
-            <div class="flex items-center justify-between text-xs text-slate-300">
-              <span>Total estimé</span>
-              <span id="sim-detail" class="text-sky-300 font-semibold">3 × Chemise / Haut</span>
-            </div>
-            <div class="text-2xl font-black text-white" id="sim-total">3 000 FCFA</div>
-            <button
-              type="button"
-              onclick="commanderDevisSurWhatsApp()"
-              class="w-full py-2.5 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold text-sm transition flex items-center justify-center gap-2"
-            >
-              <i class="fa-brands fa-whatsapp text-base"></i>
-              <span>Envoyer ce devis sur WhatsApp</span>
-            </button>
-          </div>
-        </div>
-      </div>
+      <!-- Catalogue des services & tarifs indicatifs à KANI -->
+      <div id="grille-tarifaire-catalogue" class="space-y-5 pt-2"></div>
     </section>
 
     <!-- ==================== VUE 2 : ESPACE CLIENT ==================== -->
@@ -931,10 +830,139 @@
           pubFallback.classList.remove('flex');
         }
       }
+
+      afficherGrilleTarifaireCatalogue();
     }
 
     // =========================================================================
-    // 3. NAVIGATION ENTRE VUES
+    // 3. FONCTION DE GRILLE TARIFAIRE (CATALOGUE DES SERVICES & TARIFS À KANI)
+    // =========================================================================
+    const CATALOGUE_PRESTATIONS_KANI = [
+      {
+        id: 'pressing-nettoyage-sec',
+        badge: 'Soin délicat',
+        prix: '1000 FCFA',
+        titre: 'Pressing & Nettoyage à sec',
+        description: 'Nettoyage à sec professionnel pour costumes, robes de soirée, bazins, vestes et textiles sensibles avec préservation des fibres.',
+        unite: 'par pièce',
+        modeService: 'Dépôt / Retrait en boutique'
+      },
+      {
+        id: 'laverie-sechage',
+        badge: 'Fraîcheur garantie',
+        prix: '1000 FCFA',
+        titre: 'Laverie & Séchage',
+        description: 'Lavage en profondeur, désinfection douce et séchage maîtrisé pour linge quotidien, draps, serviettes et tenues familiales.',
+        unite: 'par kg / lot',
+        modeService: 'Dépôt / Retrait en boutique'
+      },
+      {
+        id: 'repassage-vapeur',
+        badge: 'Finition nette',
+        prix: '1000 FCFA',
+        titre: 'Repassage Vapeur',
+        description: 'Repassage haute précision à la vapeur pour chemises, pantalons à pli, ensembles de bureau et tenues traditionnelles.',
+        unite: 'par pièce',
+        modeService: 'Dépôt / Retrait en boutique'
+      },
+      {
+        id: 'collecte-livraison-domicile',
+        badge: 'Service porte-à-porte',
+        prix: '500 FCFA',
+        titre: 'Collecte & Livraison à Domicile',
+        description: 'Récupération de votre linge à domicile ou au bureau à KANI et livraison soignée avec validation sécurisée par QR Code.',
+        unite: 'trajet KANI',
+        modeService: 'Collecte & Livraison à domicile'
+      }
+    ];
+
+    function demanderPrestationCatalogue(titrePrestation, modeService) {
+      const client = etatApp.clients.find(c => c.id === etatApp.sessionClientId);
+      if (client) {
+        naviguerVue('client');
+        setTimeout(() => {
+          const selectMode = document.getElementById('demande-mode');
+          const textareaArt = document.getElementById('demande-articles');
+          if (selectMode && modeService) selectMode.value = modeService;
+          if (textareaArt) {
+            textareaArt.value = `Demande pour : ${titrePrestation} (Kani)`;
+            textareaArt.focus();
+          }
+          afficherToast(`Prestation « ${titrePrestation} » pré-remplie dans votre demande.`, 'success');
+        }, 120);
+        return;
+      }
+
+      const waLien = 'https://wa.me/' + normaliserWhatsapp(etatApp.config.whatsapp)
+        + '?text=' + encodeURIComponent(`Bonjour NEO PRESSING (KANI), je souhaite passer une demande pour : ${titrePrestation}.`);
+      window.open(waLien, '_blank', 'noopener,noreferrer');
+    }
+
+    function afficherGrilleTarifaireCatalogue(conteneurId = 'grille-tarifaire-catalogue') {
+      const conteneur = document.getElementById(conteneurId);
+      if (!conteneur) return;
+
+      const cartesHtml = CATALOGUE_PRESTATIONS_KANI.map(item => `
+        <article class="bg-white rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-md hover:border-indigo-200 transition p-6 flex flex-col justify-between space-y-6">
+          <div class="space-y-4">
+            <div class="flex items-start justify-between gap-2">
+              <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 leading-tight">
+                ${echapperHTML(item.badge)}
+              </span>
+              <div class="text-base sm:text-lg font-black text-slate-900 text-right leading-tight">
+                ${echapperHTML(item.prix)}
+              </div>
+            </div>
+
+            <h3 class="text-lg font-black text-slate-900 leading-snug">
+              ${echapperHTML(item.titre)}
+            </h3>
+
+            <p class="text-xs sm:text-sm text-slate-500 leading-relaxed">
+              ${echapperHTML(item.description)}
+            </p>
+          </div>
+
+          <div class="pt-4 border-t border-slate-100 flex items-center justify-between gap-2 text-xs sm:text-sm">
+            <span class="text-slate-400 font-medium">${echapperHTML(item.unite)}</span>
+            <button
+              type="button"
+              onclick="demanderPrestationCatalogue('${echapperHTML(item.titre)}', '${echapperHTML(item.modeService)}')"
+              class="inline-flex items-center gap-1 font-bold text-indigo-600 hover:text-indigo-800 transition"
+            >
+              <span>Demander</span>
+              <i class="fa-solid fa-chevron-right text-[11px]"></i>
+            </button>
+          </div>
+        </article>
+      `).join('');
+
+      conteneur.innerHTML = `
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+          <div>
+            <p class="text-xs font-extrabold uppercase tracking-wider text-indigo-600">NOS PRESTATIONS À KANI</p>
+            <h2 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mt-0.5">
+              Catalogue des services &amp; tarifs indicatifs
+            </h2>
+          </div>
+          <button
+            type="button"
+            onclick="demanderPrestationCatalogue('Service au choix', 'Collecte & Livraison à domicile')"
+            class="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-indigo-600 hover:text-indigo-800 transition shrink-0"
+          >
+            <span>Passer une demande en ligne</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          ${cartesHtml}
+        </div>
+      `;
+    }
+
+    // =========================================================================
+    // 4. NAVIGATION ENTRE VUES
     // =========================================================================
     function naviguerVue(vue) {
       ['vue-accueil', 'vue-client', 'vue-admin'].forEach(id => {
@@ -950,12 +978,13 @@
         afficherVueAdmin();
       } else {
         document.getElementById('vue-accueil').classList.remove('hidden');
+        afficherGrilleTarifaireCatalogue();
       }
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     // =========================================================================
-    // 4. ACCUEIL : SUIVI DE COMMANDE & SIMULATEUR DE DEVIS
+    // 5. ACCUEIL : SUIVI DE COMMANDE
     // =========================================================================
     function calculerTotalCommande(cmd) {
       const sousTotal = (cmd.articles || []).reduce((somme, art) => {
@@ -1049,37 +1078,8 @@
       `;
     }
 
-    function calculerDevisRapide() {
-      const sel = document.getElementById('sim-article');
-      const qteInput = document.getElementById('sim-qte');
-      const livInput = document.getElementById('sim-livraison');
-      if (!sel || !qteInput || !livInput) return;
-
-      const prixUnitaire = Number(sel.value) || 0;
-      const nomArticle = sel.options[sel.selectedIndex]?.dataset.nom || 'Article';
-      const qte = Math.max(1, Number(qteInput.value) || 1);
-      const livraison = Number(livInput.value) || 0;
-      const total = prixUnitaire * qte + livraison;
-
-      document.getElementById('sim-detail').textContent = `${qte} × ${nomArticle}${livraison > 0 ? ' + livraison' : ''}`;
-      document.getElementById('sim-total').textContent = formaterFCFA(total);
-    }
-
-    function commanderDevisSurWhatsApp() {
-      const sel = document.getElementById('sim-article');
-      const qte = Math.max(1, Number(document.getElementById('sim-qte').value) || 1);
-      const livraison = Number(document.getElementById('sim-livraison').value) || 0;
-      const prixUnitaire = Number(sel.value) || 0;
-      const nomArticle = sel.options[sel.selectedIndex]?.dataset.nom || 'Article';
-      const total = prixUnitaire * qte + livraison;
-
-      const texte = `Bonjour NEO PRESSING (Kani), je souhaite un devis / dépôt pour : ${qte} × ${nomArticle}${livraison > 0 ? ' avec livraison à Kani' : ' en boutique'} (Estimation : ${formaterFCFA(total)}).`;
-      const url = 'https://wa.me/' + normaliserWhatsapp(etatApp.config.whatsapp) + '?text=' + encodeURIComponent(texte);
-      window.open(url, '_blank', 'noopener,noreferrer');
-    }
-
     // =========================================================================
-    // 5. ESPACE CLIENT (COMPTE WHATSAPP, CONNEXION & RÉINITIALISATION)
+    // 6. ESPACE CLIENT (COMPTE WHATSAPP, CONNEXION & RÉINITIALISATION)
     // =========================================================================
     function afficherVueClient() {
       const client = etatApp.clients.find(c => c.id === etatApp.sessionClientId);
@@ -1268,7 +1268,7 @@
     }
 
     // =========================================================================
-    // 6. ESPACE ADMINISTRATEUR (COMMANDES, CLIENTS/CONFIG & MOTS DE PASSE)
+    // 7. ESPACE ADMINISTRATEUR (COMMANDES, CLIENTS/CONFIG & MOTS DE PASSE)
     // =========================================================================
     function afficherVueAdmin() {
       const loginPanel = document.getElementById('admin-login-panel');
@@ -1420,7 +1420,7 @@
               <div class="grid grid-cols-2 gap-3">
                 <div>
                   <label class="block font-bold text-slate-700 mb-1">Prix unitaire (FCFA)</label>
-                  <input id="adm-cmd-pu" type="number" min="0" value="1000" required class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
+                  <input id="adm-cmd-pu" type="number" min="0" value="800" required class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
                 </div>
                 <div>
                   <label class="block font-bold text-slate-700 mb-1">Avance versée (FCFA)</label>
@@ -1479,7 +1479,7 @@
             prixUnitaire: pu
           }
         ],
-        fraisLivraison: mode.includes('Livraison') ? 500 : 0,
+        fraisLivraison: mode.includes('Livraison') ? 1000 : 0,
         avanceVersee: Math.max(0, Number(document.getElementById('adm-cmd-avance').value) || 0),
         observations: ''
       };
@@ -1727,7 +1727,7 @@
     }
 
     // =========================================================================
-    // 7. REÇU IMPRIMABLE, QR CODE & SCANNER QR
+    // 8. REÇU IMPRIMABLE, QR CODE & SCANNER QR
     // =========================================================================
     function ouvrirModaleRecu(code) {
       const cmd = etatApp.commandes.find(c => c.code === code);
@@ -1870,11 +1870,10 @@
     }
 
     // =========================================================================
-    // 8. DÉMARRAGE
+    // 9. DÉMARRAGE
     // =========================================================================
     document.addEventListener('DOMContentLoaded', () => {
       appliquerConfigurationVisuelle();
-      calculerDevisRapide();
       naviguerVue('accueil');
     });
   </script>
