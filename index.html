@@ -588,7 +588,7 @@
 
   <!-- Modale Création / Modification Commande Admin -->
   <div id="modal-commande-admin" class="fixed inset-0 z-50 hidden bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto no-print">
-    <div class="bg-white rounded-3xl max-w-3xl w-full p-6 sm:p-8 shadow-2xl space-y-5 my-auto">
+    <div class="bg-white rounded-3xl max-w-4xl w-full p-6 sm:p-8 shadow-2xl space-y-5 my-auto">
       <div class="flex items-center justify-between">
         <h3 id="modal-cmd-titre" class="text-2xl font-black text-slate-900 tracking-tight">Créer une nouvelle commande</h3>
         <button type="button" onclick="fermerModalCommandeAdmin()" class="w-10 h-10 rounded-full bg-slate-100 hover:bg-rose-100 hover:text-rose-700 text-slate-600 flex items-center justify-center font-bold transition">
@@ -637,24 +637,35 @@
           </div>
         </div>
 
-        <!-- Ligne 3 : Articles & Prestations + boutons d'ajout rapide -->
+        <!-- Ligne 3 : Articles (nom libre) & Prestations afférentes + boutons d'ajout rapide -->
         <div class="space-y-2.5">
           <div class="flex flex-wrap items-center justify-between gap-2">
-            <label class="font-bold text-slate-800">Articles &amp; Prestations</label>
+            <div>
+              <label class="font-bold text-slate-800 block">Articles &amp; Prestations afférentes</label>
+              <span class="text-[11px] text-slate-500">Saisissez le nom exact du vêtement/article et choisissez la prestation pour l'afficher clairement sur le reçu.</span>
+            </div>
             <div class="flex flex-wrap items-center gap-1.5 text-xs font-bold">
-              <button type="button" onclick="ajouterLigneArticleModal('Pressing & Nettoyage à sec (par pièce)', 1000)" class="px-3 py-1.5 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-700 transition">
+              <button type="button" onclick="ajouterLigneArticleModal('', 'Pressing & Nettoyage à sec', 1000, 1)" class="px-3 py-1.5 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-700 transition">
                 + Pressing (1 000 F)
               </button>
-              <button type="button" onclick="ajouterLigneArticleModal('Laverie & Séchage (par kg / lot)', 1000)" class="px-3 py-1.5 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-700 transition">
+              <button type="button" onclick="ajouterLigneArticleModal('', 'Laverie & Séchage', 1000, 1)" class="px-3 py-1.5 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-700 transition">
                 + Laverie (1 000 F)
               </button>
-              <button type="button" onclick="ajouterLigneArticleModal('Repassage Vapeur (par pièce)', 100)" class="px-3 py-1.5 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-700 transition">
+              <button type="button" onclick="ajouterLigneArticleModal('', 'Repassage Vapeur', 100, 1)" class="px-3 py-1.5 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-700 transition">
                 + Repassage (100 F)
               </button>
-              <button type="button" onclick="ajouterLigneArticleModal('Collecte & Livraison à Domicile (trajet KANI)', 500)" class="px-3 py-1.5 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 transition">
+              <button type="button" onclick="ajouterLigneArticleModal('Course collecte / livraison', 'Collecte & Livraison à Domicile', 500, 1)" class="px-3 py-1.5 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 transition">
                 + Livraison (500 F)
               </button>
             </div>
+          </div>
+
+          <div class="hidden sm:grid sm:grid-cols-12 gap-2 px-3 text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
+            <div class="sm:col-span-4">Nom de l'article</div>
+            <div class="sm:col-span-4">Prestation afférente</div>
+            <div class="sm:col-span-1 text-center">Qté</div>
+            <div class="sm:col-span-2 text-right">Prix Unit.</div>
+            <div class="sm:col-span-1"></div>
           </div>
 
           <div id="modal-cmd-articles-liste" class="space-y-2"></div>
@@ -769,7 +780,7 @@
           dateRetraitPrevu: '2026-11-27',
           statut: 'Commande enregistrée',
           articles: [
-            { designation: 'Pressing & Nettoyage à sec', prestation: 'Pressing', quantite: 2, prixUnitaire: 1000 }
+            { designation: 'Costume 2 pièces', prestation: 'Pressing & Nettoyage à sec', quantite: 2, prixUnitaire: 1000 }
           ],
           fraisLivraison: 500,
           avanceVersee: 2500,
@@ -789,7 +800,7 @@
           dateRetraitPrevu: '2026-11-26',
           statut: 'Commande enregistrée',
           articles: [
-            { designation: 'Laverie & Séchage', prestation: 'Laverie', quantite: 3, prixUnitaire: 1000 }
+            { designation: 'Lot de draps & serviettes', prestation: 'Laverie & Séchage', quantite: 3, prixUnitaire: 1000 }
           ],
           fraisLivraison: 500,
           avanceVersee: 1000,
@@ -809,7 +820,7 @@
           dateRetraitPrevu: '2026-11-25',
           statut: 'Commande enregistrée',
           articles: [
-            { designation: 'Repassage Vapeur', prestation: 'Repassage', quantite: 2, prixUnitaire: 1000 }
+            { designation: 'Chemise blanche', prestation: 'Repassage Vapeur', quantite: 2, prixUnitaire: 1000 }
           ],
           fraisLivraison: 0,
           avanceVersee: 2000,
@@ -905,7 +916,6 @@
       if (fb) fb.classList.remove('hidden');
     }
 
-    // Tente plusieurs variantes du chemin de l'image publicitaire avant d'afficher le repli visuel
     function gererErreurPubImage(imgEl) {
       const essais = [
         'PUB NEO PRESSING.jpg',
@@ -1630,19 +1640,63 @@
       if (adrInput && cli.adresse) adrInput.value = cli.adresse;
     }
 
-    function ajouterLigneArticleModal(designation = 'Pressing & Nettoyage à sec (par kg / lot)', prixUnitaire = 1000, quantite = 1) {
+    const PRESTATIONS_DISPONIBLES_MODAL = [
+      { nom: 'Pressing & Nettoyage à sec', prixDefaut: 1000 },
+      { nom: 'Laverie & Séchage', prixDefaut: 1000 },
+      { nom: 'Repassage Vapeur', prixDefaut: 100 },
+      { nom: 'Collecte & Livraison à Domicile', prixDefaut: 500 }
+    ];
+
+    function surChangementPrestationLigneModal(selectEl) {
+      const ligne = selectEl ? selectEl.closest('.modal-article-row') : null;
+      if (!ligne) return;
+      const prestationChoisie = PRESTATIONS_DISPONIBLES_MODAL.find(p => p.nom === selectEl.value);
+      const puInput = ligne.querySelector('.art-pu');
+      if (prestationChoisie && puInput) {
+        puInput.value = String(prestationChoisie.prixDefaut);
+      }
+      actualiserTotauxModalCommande();
+    }
+
+    function ajouterLigneArticleModal(nomArticle = '', prestation = 'Pressing & Nettoyage à sec', prixUnitaire = null, quantite = 1) {
       const conteneur = document.getElementById('modal-cmd-articles-liste');
       if (!conteneur) return;
 
+      const prestationMatch = PRESTATIONS_DISPONIBLES_MODAL.find(
+        p => p.nom.toLowerCase() === String(prestation || '').toLowerCase()
+          || String(prestation || '').toLowerCase().includes(p.nom.split('&')[0].trim().toLowerCase())
+      ) || PRESTATIONS_DISPONIBLES_MODAL[0];
+
+      const prixFinal = prixUnitaire !== null && prixUnitaire !== undefined
+        ? Number(prixUnitaire)
+        : prestationMatch.prixDefaut;
+
+      const optionsPrestationsHtml = PRESTATIONS_DISPONIBLES_MODAL.map(p =>
+        `<option value="${echapperHTML(p.nom)}" ${p.nom === prestationMatch.nom ? 'selected' : ''}>${echapperHTML(p.nom)}</option>`
+      ).join('');
+
       const ligne = document.createElement('div');
-      ligne.className = 'modal-article-row bg-slate-50/90 border border-slate-200/80 rounded-2xl p-2.5 flex items-center gap-2.5';
+      ligne.className = 'modal-article-row bg-slate-50/90 border border-slate-200/80 rounded-2xl p-2.5 grid grid-cols-1 sm:grid-cols-12 gap-2 items-center';
       ligne.innerHTML = `
-        <input type="text" required value="${echapperHTML(designation)}" placeholder="Désignation de l'article ou prestation" class="art-designation flex-1 min-w-0 px-3.5 py-2 rounded-xl border border-slate-200 bg-white font-semibold text-slate-800 text-xs sm:text-sm focus:border-indigo-500 focus:outline-none" />
-        <input type="number" min="1" required value="${Number(quantite) || 1}" oninput="actualiserTotauxModalCommande()" class="art-qte w-20 px-2.5 py-2 rounded-xl border border-slate-200 bg-white font-bold text-slate-900 text-center text-xs sm:text-sm focus:border-indigo-500 focus:outline-none" />
-        <input type="number" min="0" required value="${Number(prixUnitaire) || 0}" oninput="actualiserTotauxModalCommande()" class="art-pu w-28 sm:w-32 px-3 py-2 rounded-xl border border-slate-200 bg-white font-bold text-slate-900 text-right text-xs sm:text-sm focus:border-indigo-500 focus:outline-none" />
-        <button type="button" onclick="supprimerLigneArticleModal(this)" title="Supprimer cette ligne" class="w-9 h-9 rounded-xl text-rose-500 hover:bg-rose-50 hover:text-rose-700 flex items-center justify-center transition shrink-0">
-          <i class="fa-solid fa-trash-can"></i>
-        </button>
+        <div class="sm:col-span-4">
+          <input type="text" required value="${echapperHTML(nomArticle)}" placeholder="Nom de l'article (ex : Costume, Chemise, Robe...)" class="art-designation w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-semibold text-slate-800 text-xs sm:text-sm focus:border-indigo-500 focus:outline-none" />
+        </div>
+        <div class="sm:col-span-4">
+          <select onchange="surChangementPrestationLigneModal(this)" class="art-prestation w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-bold text-indigo-700 text-xs sm:text-sm focus:border-indigo-500 focus:outline-none">
+            ${optionsPrestationsHtml}
+          </select>
+        </div>
+        <div class="sm:col-span-1">
+          <input type="number" min="1" required value="${Number(quantite) || 1}" oninput="actualiserTotauxModalCommande()" title="Quantité" class="art-qte w-full px-2 py-2 rounded-xl border border-slate-200 bg-white font-bold text-slate-900 text-center text-xs sm:text-sm focus:border-indigo-500 focus:outline-none" />
+        </div>
+        <div class="sm:col-span-2">
+          <input type="number" min="0" required value="${prixFinal}" oninput="actualiserTotauxModalCommande()" title="Prix unitaire (FCFA)" class="art-pu w-full px-2.5 py-2 rounded-xl border border-slate-200 bg-white font-bold text-slate-900 text-right text-xs sm:text-sm focus:border-indigo-500 focus:outline-none" />
+        </div>
+        <div class="sm:col-span-1 flex justify-end">
+          <button type="button" onclick="supprimerLigneArticleModal(this)" title="Supprimer cette ligne" class="w-9 h-9 rounded-xl text-rose-500 hover:bg-rose-50 hover:text-rose-700 flex items-center justify-center transition shrink-0">
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+        </div>
       `;
       conteneur.appendChild(ligne);
       actualiserTotauxModalCommande();
@@ -1668,13 +1722,14 @@
 
       lignes.forEach(row => {
         const designation = (row.querySelector('.art-designation')?.value || '').trim();
+        const prestation = (row.querySelector('.art-prestation')?.value || 'Pressing & Nettoyage à sec').trim();
         const quantite = Math.max(1, Number(row.querySelector('.art-qte')?.value) || 1);
         const prixUnitaire = Math.max(0, Number(row.querySelector('.art-pu')?.value) || 0);
         sousTotal += quantite * prixUnitaire;
         if (designation) {
           articles.push({
             designation,
-            prestation: designation.split('(')[0].trim() || 'Pressing',
+            prestation,
             quantite,
             prixUnitaire
           });
@@ -1735,7 +1790,7 @@
 
       const listeArticles = document.getElementById('modal-cmd-articles-liste');
       if (listeArticles) listeArticles.innerHTML = '';
-      ajouterLigneArticleModal('Pressing & Nettoyage à sec (par kg / lot)', 1000, 1);
+      ajouterLigneArticleModal('', 'Pressing & Nettoyage à sec', 1000, 1);
 
       modal.dataset.generatedCode = 'NEO-2026-' + prochainNum + '-' + String(Date.now()).slice(-2);
       modal.classList.remove('hidden');
@@ -1765,9 +1820,9 @@
       if (listeArticles) listeArticles.innerHTML = '';
       const articlesExistants = (cmd.articles && cmd.articles.length)
         ? cmd.articles
-        : [{ designation: 'Pressing & Nettoyage à sec', prixUnitaire: 1000, quantite: 1 }];
+        : [{ designation: '', prestation: 'Pressing & Nettoyage à sec', prixUnitaire: 1000, quantite: 1 }];
       articlesExistants.forEach(art => {
-        ajouterLigneArticleModal(art.designation, art.prixUnitaire, art.quantite);
+        ajouterLigneArticleModal(art.designation, art.prestation || 'Pressing & Nettoyage à sec', art.prixUnitaire, art.quantite);
       });
 
       modal.classList.remove('hidden');
@@ -1793,11 +1848,13 @@
       const { articles, reduction, avance } = calculerTotauxFormulaireModal();
 
       if (!articles.length) {
-        afficherToast('Ajoutez au moins un article ou une prestation.', 'warning');
+        afficherToast('Saisissez le nom d’au moins un article et sa prestation.', 'warning');
         return;
       }
 
-      const aLivraison = articles.some(a => a.designation.toLowerCase().includes('livraison'));
+      const aLivraison = articles.some(
+        a => a.prestation.toLowerCase().includes('livraison') || a.designation.toLowerCase().includes('livraison')
+      );
       const modeService = aLivraison ? 'Collecte & Livraison à domicile' : 'Dépôt / Retrait en boutique';
 
       if (codeOriginal) {
@@ -1872,7 +1929,10 @@
       if (!cmd) return;
       const tot = calculerTotalCommande(cmd);
       const waCible = normaliserWhatsapp(cmd.clientWhatsapp || cmd.clientTelephone);
-      const texte = `Bonjour ${cmd.clientNom}, ici NEO PRESSING (Kani). Votre reçu ${cmd.code} est au statut : "${cmd.statut}". Total : ${formaterFCFA(tot.total)}, Reste à payer : ${formaterFCFA(tot.reste)}.`;
+      const detailArticles = (cmd.articles || [])
+        .map(a => `${a.quantite}x ${a.designation} (${a.prestation || 'Pressing'})`)
+        .join(', ');
+      const texte = `Bonjour ${cmd.clientNom}, ici NEO PRESSING (Kani). Votre reçu ${cmd.code} [${detailArticles}] est au statut : "${cmd.statut}". Total : ${formaterFCFA(tot.total)}, Reste à payer : ${formaterFCFA(tot.reste)}.`;
       window.open('https://wa.me/' + waCible + '?text=' + encodeURIComponent(texte), '_blank', 'noopener,noreferrer');
     }
 
@@ -2175,9 +2235,14 @@
         return `
           <tr class="border-b border-slate-200">
             <td class="py-2 font-bold text-center">${qte}</td>
-            <td class="py-2 font-semibold">${echapperHTML(art.designation)}</td>
-            <td class="py-2 text-slate-600">${echapperHTML(art.prestation || 'Pressing')}</td>
-            <td class="py-2 text-right font-bold">${formaterFCFA(qte * pu)}</td>
+            <td class="py-2 font-bold text-slate-900">${echapperHTML(art.designation)}</td>
+            <td class="py-2">
+              <span class="inline-block px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-800 font-bold text-[11px]">
+                ${echapperHTML(art.prestation || 'Pressing & Nettoyage à sec')}
+              </span>
+            </td>
+            <td class="py-2 text-right font-semibold text-slate-600">${formaterFCFA(pu)}</td>
+            <td class="py-2 text-right font-bold text-slate-900">${formaterFCFA(qte * pu)}</td>
           </tr>
         `;
       }).join('');
@@ -2209,11 +2274,12 @@
 
         <table class="w-full text-xs border-collapse">
           <thead>
-            <tr class="border-b-2 border-slate-300 text-slate-600">
-              <th class="py-1.5 text-center">Qté</th>
-              <th class="py-1.5 text-left">Article</th>
-              <th class="py-1.5 text-left">Prestation</th>
-              <th class="py-1.5 text-right">Montant</th>
+            <tr class="border-b-2 border-slate-300 text-slate-700 bg-slate-50">
+              <th class="py-2 px-1 text-center">Qté</th>
+              <th class="py-2 px-1 text-left">Article</th>
+              <th class="py-2 px-1 text-left">Prestation</th>
+              <th class="py-2 px-1 text-right">Prix Unit.</th>
+              <th class="py-2 px-1 text-right">Montant</th>
             </tr>
           </thead>
           <tbody>${lignesArticles}</tbody>
@@ -2222,7 +2288,8 @@
         <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
           <div id="qr-recu-box" class="qr-container"></div>
           <div class="w-full sm:w-64 space-y-1.5 text-xs bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
-            <div class="flex justify-between"><span>Livraison :</span><strong>${formaterFCFA(tot.livraison)}</strong></div>
+            ${tot.livraison > 0 ? `<div class="flex justify-between"><span>Livraison :</span><strong>${formaterFCFA(tot.livraison)}</strong></div>` : ''}
+            ${tot.reduction > 0 ? `<div class="flex justify-between text-amber-700"><span>Réduction :</span><strong>- ${formaterFCFA(tot.reduction)}</strong></div>` : ''}
             <div class="flex justify-between text-sm font-black text-slate-900 border-t border-slate-200 pt-1"><span>TOTAL :</span><span>${formaterFCFA(tot.total)}</span></div>
             <div class="flex justify-between text-emerald-700 font-bold"><span>Avance :</span><span>${formaterFCFA(tot.avance)}</span></div>
             <div class="flex justify-between text-indigo-700 font-extrabold"><span>Reste à payer :</span><span>${formaterFCFA(tot.reste)}</span></div>
