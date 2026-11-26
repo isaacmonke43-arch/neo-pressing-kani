@@ -586,6 +586,121 @@
     </div>
   </div>
 
+  <!-- Modale Création / Modification Commande Admin -->
+  <div id="modal-commande-admin" class="fixed inset-0 z-50 hidden bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto no-print">
+    <div class="bg-white rounded-3xl max-w-3xl w-full p-6 sm:p-8 shadow-2xl space-y-5 my-auto">
+      <div class="flex items-center justify-between">
+        <h3 id="modal-cmd-titre" class="text-2xl font-black text-slate-900 tracking-tight">Créer une nouvelle commande</h3>
+        <button type="button" onclick="fermerModalCommandeAdmin()" class="w-10 h-10 rounded-full bg-slate-100 hover:bg-rose-100 hover:text-rose-700 text-slate-600 flex items-center justify-center font-bold transition">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <form id="form-modal-commande-admin" onsubmit="soumettreFormulaireCommandeAdmin(event)" class="space-y-4 text-sm">
+        <input id="modal-cmd-code-original" type="hidden" />
+        <input id="modal-cmd-suivi" type="hidden" />
+        <input id="modal-cmd-retrait" type="hidden" />
+
+        <!-- Ligne 1 : Client existant / Nom complet / Téléphone -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1.5">Client existant</label>
+            <select id="modal-cmd-client-existant" onchange="selectionnerClientExistantModal(this.value)" class="w-full px-3.5 py-2.5 rounded-2xl border border-slate-300 bg-white font-semibold text-slate-800 focus:border-indigo-500 focus:outline-none">
+              <option value="">-- Nouveau ou manuel --</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1.5">Nom complet du client</label>
+            <input id="modal-cmd-nom" type="text" required placeholder="Nom du client" class="w-full px-3.5 py-2.5 rounded-2xl border border-slate-300 font-semibold text-slate-800 focus:border-indigo-500 focus:outline-none" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1.5">Téléphone</label>
+            <input id="modal-cmd-wa" type="tel" required placeholder="07 08 11 22 33" class="w-full px-3.5 py-2.5 rounded-2xl border border-slate-300 font-semibold text-slate-800 focus:border-indigo-500 focus:outline-none" />
+          </div>
+        </div>
+
+        <!-- Ligne 2 : Adresse de livraison / Statut de la commande -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1.5">Adresse de livraison</label>
+            <input id="modal-cmd-adresse" type="text" placeholder="Quartier Commerce, KANI" class="w-full px-3.5 py-2.5 rounded-2xl border border-slate-300 font-semibold text-slate-800 focus:border-indigo-500 focus:outline-none" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1.5">Statut de la commande</label>
+            <select id="modal-cmd-statut" class="w-full px-3.5 py-2.5 rounded-2xl border border-slate-300 bg-white font-bold text-slate-800 focus:border-indigo-500 focus:outline-none">
+              <option value="Commande enregistrée">Commande enregistrée</option>
+              <option value="Déposée">Déposée</option>
+              <option value="En traitement">En traitement</option>
+              <option value="Prête au retrait">Prête au retrait</option>
+              <option value="Livrée">Livrée</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Ligne 3 : Articles & Prestations + boutons d'ajout rapide -->
+        <div class="space-y-2.5">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <label class="font-bold text-slate-800">Articles &amp; Prestations</label>
+            <div class="flex flex-wrap items-center gap-1.5 text-xs font-bold">
+              <button type="button" onclick="ajouterLigneArticleModal('Pressing & Nettoyage à sec (par pièce)', 1000)" class="px-3 py-1.5 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-700 transition">
+                + Pressing (1 000 F)
+              </button>
+              <button type="button" onclick="ajouterLigneArticleModal('Laverie & Séchage (par kg / lot)', 1000)" class="px-3 py-1.5 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-700 transition">
+                + Laverie (1 000 F)
+              </button>
+              <button type="button" onclick="ajouterLigneArticleModal('Repassage Vapeur (par pièce)', 100)" class="px-3 py-1.5 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-700 transition">
+                + Repassage (100 F)
+              </button>
+              <button type="button" onclick="ajouterLigneArticleModal('Collecte & Livraison à Domicile (trajet KANI)', 500)" class="px-3 py-1.5 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 transition">
+                + Livraison (500 F)
+              </button>
+            </div>
+          </div>
+
+          <div id="modal-cmd-articles-liste" class="space-y-2"></div>
+        </div>
+
+        <!-- Ligne 4 : Réduction / Montant versé / Solder / Totaux en temps réel -->
+        <div class="bg-slate-50/90 rounded-2xl border border-slate-200/80 p-4 flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div class="flex flex-wrap items-end gap-3">
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">Réduction (FCFA)</label>
+              <input id="modal-cmd-reduction" type="number" min="0" value="0" oninput="actualiserTotauxModalCommande()" class="w-28 px-3 py-2 rounded-xl border border-slate-300 bg-white font-bold text-slate-900 focus:border-indigo-500 focus:outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">Montant versé / payé (FCFA)</label>
+              <div class="flex items-center gap-2">
+                <input id="modal-cmd-avance" type="number" min="0" value="0" oninput="actualiserTotauxModalCommande()" class="w-32 px-3 py-2 rounded-xl border border-slate-300 bg-white font-bold text-slate-900 focus:border-indigo-500 focus:outline-none" />
+                <button type="button" onclick="solderDansModalCommande()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition">
+                  Solder
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="text-left md:text-right space-y-0.5">
+            <div class="text-xs sm:text-sm font-bold text-slate-700">
+              Total des prix : <span id="modal-cmd-total-affiche" class="font-black text-slate-900">1 000 FCFA</span>
+            </div>
+            <div id="modal-cmd-reste-affiche" class="text-base sm:text-lg font-black text-rose-600">
+              Reste à payer : 1 000 FCFA
+            </div>
+          </div>
+        </div>
+
+        <!-- Pied de modale -->
+        <div class="flex flex-wrap items-center justify-end gap-2.5 pt-2">
+          <button type="button" onclick="fermerModalCommandeAdmin()" class="px-5 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold transition">
+            Annuler
+          </button>
+          <button type="submit" id="modal-cmd-submit-btn" class="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 text-white font-extrabold shadow-md transition">
+            Enregistrer &amp; Générer le Reçu QR
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Pied de page obligatoire -->
   <footer class="bg-white border-t border-slate-200 py-5 px-4 sm:px-6 lg:px-8 mt-12 no-print">
     <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
@@ -642,40 +757,63 @@
       commandes: [
         {
           code: 'NEO-2026-001',
+          codeSuivi: 'TRK-1001',
+          dateCreationAffichee: '2026-11-24 09:30',
           clientId: 'CLI-101',
-          clientNom: 'Koné Aminata',
-          clientTelephone: '07 08 45 12 30',
-          clientWhatsapp: '07 08 45 12 30',
+          clientNom: 'Awa Koné',
+          clientTelephone: '07 08 11 22 33',
+          clientWhatsapp: '07 08 11 22 33',
           clientAdresse: 'Quartier Résidentiel, Kani',
           modeService: 'Collecte & Livraison à domicile',
           dateDepot: '2026-11-24',
           dateRetraitPrevu: '2026-11-27',
-          statut: 'En traitement',
+          statut: 'Commande enregistrée',
           articles: [
-            { designation: 'Chemise manches longues', prestation: 'Repassage', quantite: 3, prixUnitaire: 1000 },
-            { designation: 'Costume 2 pièces', prestation: 'Pressing', quantite: 1, prixUnitaire: 3500 }
+            { designation: 'Pressing & Nettoyage à sec', prestation: 'Pressing', quantite: 2, prixUnitaire: 1000 }
           ],
           fraisLivraison: 500,
-          avanceVersee: 3000,
+          avanceVersee: 2500,
           observations: 'Col de chemise soigneusement repassé.'
         },
         {
           code: 'NEO-2026-002',
+          codeSuivi: 'TRK-1002',
+          dateCreationAffichee: '2026-11-24 14:15',
           clientId: 'CLI-101',
-          clientNom: 'Koné Aminata',
-          clientTelephone: '07 08 45 12 30',
-          clientWhatsapp: '07 08 45 12 30',
+          clientNom: 'Moussa Diabaté',
+          clientTelephone: '05 44 89 10 20',
+          clientWhatsapp: '05 44 89 10 20',
+          clientAdresse: 'Marché Central, Kani',
+          modeService: 'Dépôt / Retrait en boutique',
+          dateDepot: '2026-11-24',
+          dateRetraitPrevu: '2026-11-26',
+          statut: 'Commande enregistrée',
+          articles: [
+            { designation: 'Laverie & Séchage', prestation: 'Laverie', quantite: 3, prixUnitaire: 1000 }
+          ],
+          fraisLivraison: 500,
+          avanceVersee: 1000,
+          observations: 'Sous film protecteur.'
+        },
+        {
+          code: 'NEO-2026-003',
+          codeSuivi: 'TRK-1003',
+          dateCreationAffichee: '2026-11-23 11:00',
+          clientId: 'CLI-101',
+          clientNom: 'Awa Koné',
+          clientTelephone: '07 08 11 22 33',
+          clientWhatsapp: '07 08 11 22 33',
           clientAdresse: 'Quartier Résidentiel, Kani',
           modeService: 'Dépôt / Retrait en boutique',
-          dateDepot: '2026-11-22',
+          dateDepot: '2026-11-23',
           dateRetraitPrevu: '2026-11-25',
-          statut: 'Prête au retrait',
+          statut: 'Commande enregistrée',
           articles: [
-            { designation: 'Robe de soirée', prestation: 'Pressing', quantite: 1, prixUnitaire: 2500 }
+            { designation: 'Repassage Vapeur', prestation: 'Repassage', quantite: 2, prixUnitaire: 1000 }
           ],
           fraisLivraison: 0,
-          avanceVersee: 2500,
-          observations: 'Sous film protecteur.'
+          avanceVersee: 2000,
+          observations: ''
         }
       ],
       demandesClient: [],
@@ -859,7 +997,7 @@
       {
         id: 'repassage-vapeur',
         badge: 'Finition nette',
-        prix: '1000 FCFA',
+        prix: '100 FCFA',
         titre: 'Repassage Vapeur',
         description: 'Repassage haute précision à la vapeur pour chemises, pantalons à pli, ensembles de bureau et tenues traditionnelles.',
         unite: 'par pièce',
@@ -991,10 +1129,11 @@
         return somme + (Number(art.quantite) || 0) * (Number(art.prixUnitaire) || 0);
       }, 0);
       const livraison = Number(cmd.fraisLivraison) || 0;
-      const total = sousTotal + livraison;
+      const reduction = Number(cmd.reduction) || 0;
+      const total = Math.max(0, sousTotal + livraison - reduction);
       const avance = Number(cmd.avanceVersee) || 0;
       const reste = Math.max(0, total - avance);
-      return { sousTotal, livraison, total, avance, reste };
+      return { sousTotal, livraison, reduction, total, avance, reste };
     }
 
     function rechercherCommandeAccueil(event) {
@@ -1256,23 +1395,29 @@
                 <span class="font-black text-sm text-slate-900">${echapperHTML(cmd.code)}</span>
                 <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-sky-100 text-sky-900">${echapperHTML(cmd.statut)}</span>
               </div>
-              <div class="text-xs text-slate-600">${echapperHTML(cmd.modeService)} • Retrait : <strong>${echapperHTML(cmd.dateRetraitPrevu)}</strong></div>
-              <div class="text-xs font-bold text-indigo-700">Total : ${formaterFCFA(tot.total)} (Reste : ${formaterFCFA(tot.reste)})</div>
+              <div class="text-xs text-slate-500">${echapperHTML(cmd.modeService)} • Retrait : ${echapperHTML(cmd.dateRetraitPrevu)}</div>
             </div>
-            <button type="button" onclick="ouvrirModaleRecu('${echapperHTML(cmd.code)}')" class="px-3.5 py-2 rounded-xl bg-white hover:bg-indigo-50 text-indigo-700 border border-indigo-200 font-bold text-xs shrink-0">
-              <i class="fa-solid fa-qrcode mr-1"></i>Reçu &amp; QR
-            </button>
+            <div class="flex items-center justify-between sm:justify-end gap-3">
+              <div class="text-right">
+                <div class="font-black text-sm text-slate-900">${formaterFCFA(tot.total)}</div>
+                <div class="text-xs font-bold ${tot.reste <= 0 ? 'text-emerald-600' : 'text-rose-600'}">Reste : ${formaterFCFA(tot.reste)}</div>
+              </div>
+              <button type="button" onclick="ouvrirModaleRecu('${echapperHTML(cmd.code)}')" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs">
+                Reçu &amp; QR
+              </button>
+            </div>
           </div>
         `;
       }).join('');
     }
 
     // =========================================================================
-    // 7. ESPACE ADMINISTRATEUR (COMMANDES, CLIENTS/CONFIG & MOTS DE PASSE)
+    // 7. ESPACE ADMINISTRATEUR (AUTHENTIFICATION, KPI & ONGLETS)
     // =========================================================================
     function afficherVueAdmin() {
       const loginPanel = document.getElementById('admin-login-panel');
       const dashPanel = document.getElementById('admin-dashboard-panel');
+      if (!loginPanel || !dashPanel) return;
 
       if (!etatApp.adminConnecte) {
         loginPanel.classList.remove('hidden');
@@ -1288,52 +1433,64 @@
 
     function connecterAdmin(e) {
       e.preventDefault();
-      const saisi = document.getElementById('admin-code-input').value.trim();
-      if (saisi !== etatApp.config.codeAdmin) {
-        afficherToast('Code d’accès administrateur invalide.', 'error');
+      const input = document.getElementById('admin-code-input');
+      const codeSaisi = (input ? input.value : '').trim();
+      const codeAttendu = String(etatApp.config.codeAdmin || 'AngeMam2026@1').trim();
+
+      if (codeSaisi !== codeAttendu) {
+        afficherToast('Code d’accès administrateur incorrect.', 'error');
         return;
       }
+
       etatApp.adminConnecte = true;
-      document.getElementById('admin-code-input').value = '';
       sauvegarderEtat();
-      afficherToast('Session administrateur ouverte.', 'success');
+      if (input) input.value = '';
+      afficherToast('Connexion administrateur réussie.', 'success');
       afficherVueAdmin();
     }
 
     function deconnecterAdmin() {
       etatApp.adminConnecte = false;
       sauvegarderEtat();
+      afficherToast('Console administrateur verrouillée.', 'info');
       afficherVueAdmin();
     }
 
     function actualiserKPIAdmin() {
-      const cmds = etatApp.commandes || [];
-      const enCours = cmds.filter(c => c.statut === 'En traitement' || c.statut === 'Déposée').length;
-      const pretes = cmds.filter(c => c.statut === 'Prête au retrait').length;
-      const ca = cmds.reduce((somme, c) => somme + calculerTotalCommande(c).total, 0);
+      const commandes = etatApp.commandes || [];
+      const totalCommandes = commandes.length;
+      const enCours = commandes.filter(c => c.statut === 'En traitement' || c.statut === 'Déposée' || c.statut === 'Commande enregistrée').length;
+      const pretes = commandes.filter(c => c.statut === 'Prête au retrait').length;
+      const caTotal = commandes.reduce((somme, cmd) => somme + calculerTotalCommande(cmd).total, 0);
 
-      document.getElementById('kpi-total-commandes').textContent = String(cmds.length);
-      document.getElementById('kpi-en-cours').textContent = String(enCours);
-      document.getElementById('kpi-pretes').textContent = String(pretes);
-      document.getElementById('kpi-ca').textContent = formaterFCFA(ca);
+      const elTotal = document.getElementById('kpi-total-commandes');
+      const elEnCours = document.getElementById('kpi-en-cours');
+      const elPretes = document.getElementById('kpi-pretes');
+      const elCa = document.getElementById('kpi-ca');
+
+      if (elTotal) elTotal.textContent = String(totalCommandes);
+      if (elEnCours) elEnCours.textContent = String(enCours);
+      if (elPretes) elPretes.textContent = String(pretes);
+      if (elCa) elCa.textContent = formaterFCFA(caTotal);
     }
 
     function definirOngletAdmin(onglet) {
-      etatApp.ongletAdminActif = onglet;
+      const valides = ['commandes', 'clients_config', 'securite'];
+      const cible = valides.includes(onglet) ? onglet : 'commandes';
+      etatApp.ongletAdminActif = cible;
       sauvegarderEtat();
 
-      const ids = ['commandes', 'clients_config', 'securite'];
-      ids.forEach(nom => {
+      valides.forEach(nom => {
         const btn = document.getElementById('admin-tab-' + nom);
         if (!btn) return;
-        if (nom === onglet) {
-          btn.className = 'px-4 py-2 rounded-xl bg-slate-900 text-white transition shadow-sm';
+        if (nom === cible) {
+          btn.className = 'px-4 py-2 rounded-xl bg-slate-900 text-white transition';
         } else {
           btn.className = 'px-4 py-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition';
         }
       });
 
-      afficherContenuOngletAdmin(onglet);
+      afficherContenuOngletAdmin(cible);
     }
 
     function afficherContenuOngletAdmin(onglet) {
@@ -1345,142 +1502,350 @@
       } else if (onglet === 'securite') {
         zone.innerHTML = rendreOngletMotsDePasse();
       } else {
-        zone.innerHTML = rendreOngletCommandes();
+        zone.innerHTML = rendreOngletCommandesAdmin();
       }
     }
 
-    // --- Sous-vue Admin 1 : Commandes & Reçus ---
-    function rendreOngletCommandes() {
-      const lignes = (etatApp.commandes || []).map(cmd => {
+    function rendreOngletCommandesAdmin() {
+      const lignesHtml = (etatApp.commandes || []).map(cmd => {
         const tot = calculerTotalCommande(cmd);
-        const waNum = cmd.clientWhatsapp || cmd.clientTelephone || '';
+        const estSolde = tot.reste <= 0;
+        const statuts = ['Commande enregistrée', 'Déposée', 'En traitement', 'Prête au retrait', 'Livrée'];
+        const optionsStatut = statuts.map(st =>
+          `<option value="${echapperHTML(st)}" ${cmd.statut === st ? 'selected' : ''}>${echapperHTML(st)}</option>`
+        ).join('');
+
         return `
-          <tr class="border-b border-slate-100 hover:bg-slate-50/70 text-xs sm:text-sm">
-            <td class="py-3 px-3 font-black text-slate-900 whitespace-nowrap">${echapperHTML(cmd.code)}</td>
-            <td class="py-3 px-3">
-              <div class="font-bold text-slate-900">${echapperHTML(cmd.clientNom)}</div>
-              <div class="text-xs text-emerald-700 font-semibold"><i class="fa-brands fa-whatsapp mr-1"></i>${echapperHTML(waNum)}</div>
+          <tr class="border-b border-slate-100 hover:bg-slate-50/70 transition">
+            <td class="py-3.5 px-4 align-top">
+              <button type="button" onclick="ouvrirModaleRecu('${echapperHTML(cmd.code)}')" class="font-black text-indigo-700 hover:underline text-xs sm:text-sm block text-left">
+                ${echapperHTML(cmd.code)}
+              </button>
+              <div class="text-[11px] text-slate-500 font-medium mt-0.5">
+                ${echapperHTML(cmd.codeSuivi || '')}${cmd.codeSuivi && cmd.dateCreationAffichee ? ' • ' : ''}${echapperHTML(cmd.dateCreationAffichee || '')}
+              </div>
             </td>
-            <td class="py-3 px-3 font-extrabold text-indigo-700 whitespace-nowrap">${formaterFCFA(tot.total)}</td>
-            <td class="py-3 px-3">
-              <select onchange="changerStatutCommande('${echapperHTML(cmd.code)}', this.value)" class="px-2.5 py-1.5 rounded-xl border border-slate-300 bg-white font-bold text-xs">
-                ${['Déposée', 'En traitement', 'Prête au retrait', 'Livrée'].map(st => `
-                  <option value="${st}" ${cmd.statut === st ? 'selected' : ''}>${st}</option>
-                `).join('')}
+            <td class="py-3.5 px-4 align-top">
+              <div class="font-extrabold text-slate-900 text-xs sm:text-sm">${echapperHTML(cmd.clientNom)}</div>
+              <div class="text-xs text-slate-500 mt-0.5">${echapperHTML(cmd.clientTelephone || cmd.clientWhatsapp || '')}</div>
+            </td>
+            <td class="py-3.5 px-4 align-top">
+              <select onchange="changerStatutCommande('${echapperHTML(cmd.code)}', this.value)" class="px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm font-bold text-slate-800 focus:border-indigo-500 focus:outline-none">
+                ${optionsStatut}
               </select>
             </td>
-            <td class="py-3 px-3 text-right whitespace-nowrap">
-              <button type="button" onclick="ouvrirModaleRecu('${echapperHTML(cmd.code)}')" class="px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs mr-1">
-                Reçu QR
-              </button>
-              <button type="button" onclick="notifierCommandeWhatsApp('${echapperHTML(cmd.code)}')" class="px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs">
-                <i class="fa-brands fa-whatsapp"></i>
-              </button>
+            <td class="py-3.5 px-4 align-top text-right font-black text-slate-900 text-xs sm:text-sm whitespace-nowrap">
+              ${tot.total.toLocaleString('fr-FR')} <span class="block sm:inline">FCFA</span>
+            </td>
+            <td class="py-3.5 px-4 align-top text-right font-black text-xs sm:text-sm whitespace-nowrap ${estSolde ? 'text-emerald-600' : 'text-rose-600'}">
+              ${tot.reste.toLocaleString('fr-FR')} <span class="block sm:inline">FCFA</span>
+            </td>
+            <td class="py-3.5 px-4 align-top">
+              <div class="flex flex-wrap items-center justify-end gap-1.5">
+                ${estSolde
+                  ? `<span class="px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-700 font-bold text-xs">Soldé</span>`
+                  : `<button type="button" onclick="solderCommandeRapide('${echapperHTML(cmd.code)}')" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition">Solder (Tout payé)</button>`
+                }
+                <button type="button" onclick="ouvrirModalModifierCommande('${echapperHTML(cmd.code)}')" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition">
+                  Modifier
+                </button>
+                <button type="button" onclick="ouvrirModaleRecu('${echapperHTML(cmd.code)}')" class="px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs transition">
+                  Reçu PDF
+                </button>
+              </div>
             </td>
           </tr>
         `;
       }).join('');
 
       return `
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div class="lg:col-span-5 bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-sm">
-            <h3 class="text-lg font-black text-slate-900 mb-4">Nouvelle commande / dépôt</h3>
-            <form onsubmit="ajouterCommandeAdmin(event)" class="space-y-3 text-sm">
-              <div>
-                <label class="block font-bold text-slate-700 mb-1">Nom du client</label>
-                <input id="adm-cmd-nom" type="text" required placeholder="Ex : Touré Moussa" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-semibold" />
-              </div>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label class="block font-bold text-slate-700 mb-1">Numéro WhatsApp</label>
-                  <input id="adm-cmd-wa" type="tel" required placeholder="05 02 72 45 50" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-semibold" />
-                </div>
-                <div>
-                  <label class="block font-bold text-slate-700 mb-1">Retrait prévu</label>
-                  <input id="adm-cmd-retrait" type="date" required class="w-full px-3 py-2 rounded-xl border border-slate-300 font-semibold" />
-                </div>
-              </div>
-              <div>
-                <label class="block font-bold text-slate-700 mb-1">Mode de service</label>
-                <select id="adm-cmd-mode" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-semibold">
-                  <option value="Dépôt / Retrait en boutique">Dépôt / Retrait en boutique</option>
-                  <option value="Collecte & Livraison à domicile">Collecte &amp; Livraison à domicile</option>
-                </select>
-              </div>
-              <div class="grid grid-cols-3 gap-2">
-                <div class="col-span-1">
-                  <label class="block font-bold text-slate-700 mb-1">Qté</label>
-                  <input id="adm-cmd-qte" type="number" min="1" value="2" required class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
-                </div>
-                <div class="col-span-2">
-                  <label class="block font-bold text-slate-700 mb-1">Article</label>
-                  <input id="adm-cmd-article" type="text" required placeholder="Ex : Chemise" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-semibold" />
-                </div>
-              </div>
-              <div class="grid grid-cols-2 gap-3">
-                <div>
-                  <label class="block font-bold text-slate-700 mb-1">Prix unitaire (FCFA)</label>
-                  <input id="adm-cmd-pu" type="number" min="0" value="800" required class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
-                </div>
-                <div>
-                  <label class="block font-bold text-slate-700 mb-1">Avance versée (FCFA)</label>
-                  <input id="adm-cmd-avance" type="number" min="0" value="0" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
-                </div>
-              </div>
-              <button type="submit" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold transition">
-                Créer la commande &amp; générer le reçu
-              </button>
-            </form>
+        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100">
+            <div>
+              <h3 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Commandes &amp; Reçus QR Code</h3>
+              <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Créez, modifiez, soldez ou mettez à jour le statut des commandes.</p>
+            </div>
+            <button type="button" onclick="ouvrirModalNouvelleCommande()" class="px-5 py-3 rounded-2xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 text-white font-extrabold text-xs sm:text-sm shadow-md transition inline-flex items-center justify-center gap-2 shrink-0">
+              <i class="fa-solid fa-plus"></i>
+              <span>Nouvelle Commande</span>
+            </button>
           </div>
 
-          <div class="lg:col-span-7 bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-sm overflow-x-auto">
-            <h3 class="text-lg font-black text-slate-900 mb-4">Liste des commandes</h3>
-            <table class="w-full text-left border-collapse min-w-[540px]">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
               <thead>
-                <tr class="border-b border-slate-200 text-xs font-extrabold uppercase text-slate-500">
-                  <th class="py-2 px-3">Reçu</th>
-                  <th class="py-2 px-3">Client / WhatsApp</th>
-                  <th class="py-2 px-3">Total</th>
-                  <th class="py-2 px-3">Statut</th>
-                  <th class="py-2 px-3 text-right">Actions</th>
+                <tr class="bg-slate-950 text-white text-xs font-bold">
+                  <th class="py-3.5 px-4">Reçu / Suivi</th>
+                  <th class="py-3.5 px-4">Client</th>
+                  <th class="py-3.5 px-4">Statut</th>
+                  <th class="py-3.5 px-4 text-right">Total</th>
+                  <th class="py-3.5 px-4 text-right">Reste à payer</th>
+                  <th class="py-3.5 px-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody>${lignes}</tbody>
+              <tbody>
+                ${lignesHtml || `<tr><td colspan="6" class="py-8 text-center text-sm text-slate-500">Aucune commande enregistrée.</td></tr>`}
+              </tbody>
             </table>
           </div>
         </div>
       `;
     }
 
-    function ajouterCommandeAdmin(e) {
+    function solderCommandeRapide(code) {
+      const cmd = etatApp.commandes.find(c => c.code === code);
+      if (!cmd) return;
+      const tot = calculerTotalCommande(cmd);
+      cmd.avanceVersee = tot.total;
+      sauvegarderEtat();
+      actualiserKPIAdmin();
+      afficherContenuOngletAdmin('commandes');
+      afficherToast('Commande ' + code + ' soldée (tout payé).', 'success');
+    }
+
+    function peuplerSelectClientsModal(selectionId = '') {
+      const select = document.getElementById('modal-cmd-client-existant');
+      if (!select) return;
+
+      const optionsClients = (etatApp.clients || []).map(cli => {
+        const tel = cli.whatsapp || cli.telephone || '';
+        const libelle = `${cli.nomComplet || 'Client'} (${tel})`;
+        return `<option value="${echapperHTML(cli.id)}" ${cli.id === selectionId ? 'selected' : ''}>${echapperHTML(libelle)}</option>`;
+      }).join('');
+
+      select.innerHTML = `<option value="">-- Sélectionner un client --</option>${optionsClients}`;
+    }
+
+    function selectionnerClientExistantModal(clientId) {
+      if (!clientId) return;
+      const cli = (etatApp.clients || []).find(c => c.id === clientId);
+      if (!cli) return;
+
+      const nomInput = document.getElementById('modal-cmd-nom');
+      const waInput = document.getElementById('modal-cmd-wa');
+      const adrInput = document.getElementById('modal-cmd-adresse');
+
+      if (nomInput) nomInput.value = cli.nomComplet || '';
+      if (waInput) waInput.value = cli.whatsapp || cli.telephone || '';
+      if (adrInput && cli.adresse) adrInput.value = cli.adresse;
+    }
+
+    function ajouterLigneArticleModal(designation = 'Pressing & Nettoyage à sec (par kg / lot)', prixUnitaire = 1000, quantite = 1) {
+      const conteneur = document.getElementById('modal-cmd-articles-liste');
+      if (!conteneur) return;
+
+      const ligne = document.createElement('div');
+      ligne.className = 'modal-article-row bg-slate-50/90 border border-slate-200/80 rounded-2xl p-2.5 flex items-center gap-2.5';
+      ligne.innerHTML = `
+        <input type="text" required value="${echapperHTML(designation)}" placeholder="Désignation de l'article ou prestation" class="art-designation flex-1 min-w-0 px-3.5 py-2 rounded-xl border border-slate-200 bg-white font-semibold text-slate-800 text-xs sm:text-sm focus:border-indigo-500 focus:outline-none" />
+        <input type="number" min="1" required value="${Number(quantite) || 1}" oninput="actualiserTotauxModalCommande()" class="art-qte w-20 px-2.5 py-2 rounded-xl border border-slate-200 bg-white font-bold text-slate-900 text-center text-xs sm:text-sm focus:border-indigo-500 focus:outline-none" />
+        <input type="number" min="0" required value="${Number(prixUnitaire) || 0}" oninput="actualiserTotauxModalCommande()" class="art-pu w-28 sm:w-32 px-3 py-2 rounded-xl border border-slate-200 bg-white font-bold text-slate-900 text-right text-xs sm:text-sm focus:border-indigo-500 focus:outline-none" />
+        <button type="button" onclick="supprimerLigneArticleModal(this)" title="Supprimer cette ligne" class="w-9 h-9 rounded-xl text-rose-500 hover:bg-rose-50 hover:text-rose-700 flex items-center justify-center transition shrink-0">
+          <i class="fa-solid fa-trash-can"></i>
+        </button>
+      `;
+      conteneur.appendChild(ligne);
+      actualiserTotauxModalCommande();
+    }
+
+    function supprimerLigneArticleModal(btnEl) {
+      const conteneur = document.getElementById('modal-cmd-articles-liste');
+      const ligne = btnEl ? btnEl.closest('.modal-article-row') : null;
+      if (!conteneur || !ligne) return;
+
+      if (conteneur.querySelectorAll('.modal-article-row').length <= 1) {
+        afficherToast('Au moins une ligne d’article ou prestation est requise.', 'warning');
+        return;
+      }
+      ligne.remove();
+      actualiserTotauxModalCommande();
+    }
+
+    function calculerTotauxFormulaireModal() {
+      const lignes = Array.from(document.querySelectorAll('#modal-cmd-articles-liste .modal-article-row'));
+      let sousTotal = 0;
+      const articles = [];
+
+      lignes.forEach(row => {
+        const designation = (row.querySelector('.art-designation')?.value || '').trim();
+        const quantite = Math.max(1, Number(row.querySelector('.art-qte')?.value) || 1);
+        const prixUnitaire = Math.max(0, Number(row.querySelector('.art-pu')?.value) || 0);
+        sousTotal += quantite * prixUnitaire;
+        if (designation) {
+          articles.push({
+            designation,
+            prestation: designation.split('(')[0].trim() || 'Pressing',
+            quantite,
+            prixUnitaire
+          });
+        }
+      });
+
+      const reduction = Math.max(0, Number(document.getElementById('modal-cmd-reduction')?.value) || 0);
+      const avance = Math.max(0, Number(document.getElementById('modal-cmd-avance')?.value) || 0);
+      const total = Math.max(0, sousTotal - reduction);
+      const reste = Math.max(0, total - avance);
+
+      return { articles, sousTotal, reduction, avance, total, reste };
+    }
+
+    function actualiserTotauxModalCommande() {
+      const { total, reste } = calculerTotauxFormulaireModal();
+      const elTotal = document.getElementById('modal-cmd-total-affiche');
+      const elReste = document.getElementById('modal-cmd-reste-affiche');
+
+      if (elTotal) elTotal.textContent = formaterFCFA(total);
+      if (elReste) {
+        elReste.textContent = `Reste à payer : ${formaterFCFA(reste)}`;
+        elReste.className = reste <= 0
+          ? 'text-base sm:text-lg font-black text-emerald-600'
+          : 'text-base sm:text-lg font-black text-rose-600';
+      }
+    }
+
+    function solderDansModalCommande() {
+      const { total } = calculerTotauxFormulaireModal();
+      const inputAvance = document.getElementById('modal-cmd-avance');
+      if (inputAvance) {
+        inputAvance.value = String(total);
+      }
+      actualiserTotauxModalCommande();
+    }
+
+    function ouvrirModalNouvelleCommande() {
+      const modal = document.getElementById('modal-commande-admin');
+      if (!modal) return;
+
+      const prochainNum = String(etatApp.commandes.length + 1).padStart(3, '0');
+      const demain = new Date(Date.now() + 86400000 * 2).toISOString().slice(0, 10);
+
+      document.getElementById('modal-cmd-titre').textContent = 'Créer une nouvelle commande';
+      document.getElementById('modal-cmd-submit-btn').textContent = 'Enregistrer & Générer le Reçu QR';
+      document.getElementById('modal-cmd-code-original').value = '';
+      document.getElementById('modal-cmd-nom').value = '';
+      document.getElementById('modal-cmd-wa').value = '';
+      document.getElementById('modal-cmd-adresse').value = 'Quartier Commerce, KANI';
+      document.getElementById('modal-cmd-suivi').value = 'TRK-' + (1000 + etatApp.commandes.length + 1);
+      document.getElementById('modal-cmd-statut').value = 'Commande enregistrée';
+      document.getElementById('modal-cmd-retrait').value = demain;
+      document.getElementById('modal-cmd-reduction').value = '0';
+      document.getElementById('modal-cmd-avance').value = '0';
+
+      peuplerSelectClientsModal('');
+
+      const listeArticles = document.getElementById('modal-cmd-articles-liste');
+      if (listeArticles) listeArticles.innerHTML = '';
+      ajouterLigneArticleModal('Pressing & Nettoyage à sec (par kg / lot)', 1000, 1);
+
+      modal.dataset.generatedCode = 'NEO-2026-' + prochainNum + '-' + String(Date.now()).slice(-2);
+      modal.classList.remove('hidden');
+      actualiserTotauxModalCommande();
+    }
+
+    function ouvrirModalModifierCommande(code) {
+      const cmd = etatApp.commandes.find(c => c.code === code);
+      const modal = document.getElementById('modal-commande-admin');
+      if (!cmd || !modal) return;
+
+      document.getElementById('modal-cmd-titre').textContent = 'Modifier la commande ' + cmd.code;
+      document.getElementById('modal-cmd-submit-btn').textContent = 'Enregistrer & Générer le Reçu QR';
+      document.getElementById('modal-cmd-code-original').value = cmd.code;
+      document.getElementById('modal-cmd-nom').value = cmd.clientNom || '';
+      document.getElementById('modal-cmd-wa').value = cmd.clientWhatsapp || cmd.clientTelephone || '';
+      document.getElementById('modal-cmd-adresse').value = cmd.clientAdresse || 'KANI';
+      document.getElementById('modal-cmd-suivi').value = cmd.codeSuivi || '';
+      document.getElementById('modal-cmd-statut').value = cmd.statut || 'Commande enregistrée';
+      document.getElementById('modal-cmd-retrait').value = cmd.dateRetraitPrevu || '';
+      document.getElementById('modal-cmd-reduction').value = String(cmd.reduction || 0);
+      document.getElementById('modal-cmd-avance').value = String(cmd.avanceVersee || 0);
+
+      peuplerSelectClientsModal(cmd.clientId || '');
+
+      const listeArticles = document.getElementById('modal-cmd-articles-liste');
+      if (listeArticles) listeArticles.innerHTML = '';
+      const articlesExistants = (cmd.articles && cmd.articles.length)
+        ? cmd.articles
+        : [{ designation: 'Pressing & Nettoyage à sec', prixUnitaire: 1000, quantite: 1 }];
+      articlesExistants.forEach(art => {
+        ajouterLigneArticleModal(art.designation, art.prixUnitaire, art.quantite);
+      });
+
+      modal.classList.remove('hidden');
+      actualiserTotauxModalCommande();
+    }
+
+    function fermerModalCommandeAdmin() {
+      const modal = document.getElementById('modal-commande-admin');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function soumettreFormulaireCommandeAdmin(e) {
       e.preventDefault();
-      const qte = Math.max(1, Number(document.getElementById('adm-cmd-qte').value) || 1);
-      const pu = Math.max(0, Number(document.getElementById('adm-cmd-pu').value) || 0);
-      const mode = document.getElementById('adm-cmd-mode').value;
-      const numWa = document.getElementById('adm-cmd-wa').value.trim();
-      const code = 'NEO-2026-' + String(Math.floor(100 + Math.random() * 900)) + '-' + String(Date.now()).slice(-2);
+      const modal = document.getElementById('modal-commande-admin');
+      const codeOriginal = document.getElementById('modal-cmd-code-original').value.trim();
+      const clientIdSelectionne = document.getElementById('modal-cmd-client-existant').value || null;
+      const nom = document.getElementById('modal-cmd-nom').value.trim();
+      const numWa = document.getElementById('modal-cmd-wa').value.trim();
+      const adresse = (document.getElementById('modal-cmd-adresse').value || '').trim() || 'KANI';
+      const codeSuivi = document.getElementById('modal-cmd-suivi').value.trim().toUpperCase();
+      const statut = document.getElementById('modal-cmd-statut').value;
+      const retrait = document.getElementById('modal-cmd-retrait').value;
+      const { articles, reduction, avance } = calculerTotauxFormulaireModal();
+
+      if (!articles.length) {
+        afficherToast('Ajoutez au moins un article ou une prestation.', 'warning');
+        return;
+      }
+
+      const aLivraison = articles.some(a => a.designation.toLowerCase().includes('livraison'));
+      const modeService = aLivraison ? 'Collecte & Livraison à domicile' : 'Dépôt / Retrait en boutique';
+
+      if (codeOriginal) {
+        const existante = etatApp.commandes.find(c => c.code === codeOriginal);
+        if (!existante) return;
+        existante.clientId = clientIdSelectionne;
+        existante.clientNom = nom;
+        existante.clientTelephone = numWa;
+        existante.clientWhatsapp = numWa;
+        existante.clientAdresse = adresse;
+        existante.codeSuivi = codeSuivi || existante.codeSuivi;
+        existante.statut = statut;
+        existante.dateRetraitPrevu = retrait;
+        existante.modeService = modeService;
+        existante.articles = articles;
+        existante.fraisLivraison = 0;
+        existante.reduction = reduction;
+        existante.avanceVersee = avance;
+        sauvegarderEtat();
+        actualiserKPIAdmin();
+        afficherContenuOngletAdmin('commandes');
+        fermerModalCommandeAdmin();
+        afficherToast('Commande ' + codeOriginal + ' mise à jour.', 'success');
+        ouvrirModaleRecu(codeOriginal);
+        return;
+      }
+
+      const code = (modal && modal.dataset.generatedCode) || ('NEO-2026-' + String(Date.now()).slice(-4));
+      const maintenant = new Date();
+      const dateStr = maintenant.toISOString().slice(0, 10) + ' ' + maintenant.toTimeString().slice(0, 5);
 
       const nouvelleCmd = {
         code,
-        clientId: null,
-        clientNom: document.getElementById('adm-cmd-nom').value.trim(),
+        codeSuivi: codeSuivi || ('TRK-' + String(Date.now()).slice(-4)),
+        dateCreationAffichee: dateStr,
+        clientId: clientIdSelectionne,
+        clientNom: nom,
         clientTelephone: numWa,
         clientWhatsapp: numWa,
-        clientAdresse: 'Kani',
-        modeService: mode,
-        dateDepot: new Date().toISOString().slice(0, 10),
-        dateRetraitPrevu: document.getElementById('adm-cmd-retrait').value,
-        statut: 'Déposée',
-        articles: [
-          {
-            designation: document.getElementById('adm-cmd-article').value.trim(),
-            prestation: 'Pressing / Repassage',
-            quantite: qte,
-            prixUnitaire: pu
-          }
-        ],
-        fraisLivraison: mode.includes('Livraison') ? 1000 : 0,
-        avanceVersee: Math.max(0, Number(document.getElementById('adm-cmd-avance').value) || 0),
+        clientAdresse: adresse,
+        modeService,
+        dateDepot: maintenant.toISOString().slice(0, 10),
+        dateRetraitPrevu: retrait,
+        statut,
+        articles,
+        fraisLivraison: 0,
+        reduction,
+        avanceVersee: avance,
         observations: ''
       };
 
@@ -1488,7 +1853,8 @@
       sauvegarderEtat();
       actualiserKPIAdmin();
       afficherContenuOngletAdmin('commandes');
-      afficherToast('Commande ' + code + ' créée avec succès.', 'success');
+      fermerModalCommandeAdmin();
+      afficherToast('Commande ' + code + ' enregistrée avec succès.', 'success');
       ouvrirModaleRecu(code);
     }
 
@@ -1543,7 +1909,42 @@
       return `
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div class="lg:col-span-6 bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-4">
-            <h3 class="text-lg font-black text-slate-900">Clients inscrits (WhatsApp)</h3>
+            <div class="flex items-center justify-between gap-2">
+              <h3 class="text-lg font-black text-slate-900">Saisir un nouveau client</h3>
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">Compte WhatsApp</span>
+            </div>
+
+            <form onsubmit="ajouterClientAdmin(event)" class="space-y-3 text-sm bg-slate-50/80 p-4 rounded-2xl border border-slate-200/80">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block font-bold text-slate-700 mb-1">Nom &amp; Prénom *</label>
+                  <input id="admin-new-client-nom" type="text" required placeholder="Ex : Coulibaly Ibrahim" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white font-semibold" />
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-700 mb-1">Numéro WhatsApp *</label>
+                  <input id="admin-new-client-wa" type="tel" required placeholder="Ex : 07 12 34 56 78" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white font-semibold" />
+                </div>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block font-bold text-slate-700 mb-1">Adresse / Quartier à Kani *</label>
+                  <input id="admin-new-client-adresse" type="text" required placeholder="Ex : Quartier Commerce, Kani" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white font-semibold" />
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-700 mb-1">Mot de passe (optionnel)</label>
+                  <input id="admin-new-client-mdp" type="text" placeholder="Par défaut : 1234" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white font-semibold" />
+                </div>
+              </div>
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">E-mail (optionnel)</label>
+                <input id="admin-new-client-email" type="email" placeholder="client@exemple.com" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white font-semibold" />
+              </div>
+              <button type="submit" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold transition shadow-xs">
+                <i class="fa-solid fa-user-plus mr-1.5"></i>Enregistrer le client
+              </button>
+            </form>
+
+            <h3 class="text-lg font-black text-slate-900 pt-2">Clients inscrits (WhatsApp)</h3>
             <div class="space-y-2.5">${clientsHtml}</div>
 
             <h3 class="text-lg font-black text-slate-900 pt-4 border-t border-slate-100">Demandes de collecte / dépôt</h3>
@@ -1587,6 +1988,37 @@
       sauvegarderEtat();
       appliquerConfigurationVisuelle();
       afficherToast('Configuration NEO PRESSING mise à jour.', 'success');
+    }
+
+    function ajouterClientAdmin(e) {
+      e.preventDefault();
+      const nomComplet = document.getElementById('admin-new-client-nom').value.trim();
+      const whatsapp = document.getElementById('admin-new-client-wa').value.trim();
+      const adresse = document.getElementById('admin-new-client-adresse').value.trim();
+      const motDePasse = (document.getElementById('admin-new-client-mdp').value || '').trim() || '1234';
+      const email = (document.getElementById('admin-new-client-email').value || '').trim();
+
+      if (!nomComplet || !whatsapp) {
+        afficherToast('Veuillez renseigner au moins le nom et le numéro WhatsApp du client.', 'warning');
+        return;
+      }
+
+      const nouveauClient = {
+        id: 'CLI-' + Date.now(),
+        nomComplet,
+        telephone: whatsapp,
+        whatsapp,
+        email,
+        motDePasse,
+        adresse: adresse || 'Kani',
+        actif: true
+      };
+
+      etatApp.clients.unshift(nouveauClient);
+      sauvegarderEtat();
+      e.target.reset();
+      afficherContenuOngletAdmin('clients_config');
+      afficherToast('Client « ' + nomComplet + ' » enregistré avec succès.', 'success');
     }
 
     // --- Sous-vue Admin 3 : Mots de passe (Admin + Demandes Clients + Reset direct) ---
